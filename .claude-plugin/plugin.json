@@ -1,0 +1,34 @@
+{
+  "name": "code-quality-suite",
+  "version": "0.1.0",
+  "description": "Java/Spring Boot 코드 리팩토링 + 품질 검증 전문 Agent 번들. Refactor Agent(구조 개선·테스트 동시 갱신·아토믹 커밋) + Quality Agent(보안·레이어·테스트·성능 검증) + git commit 직전 Hook 자동 파이프라인",
+  "author": {
+    "name": "daehwan"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eoghks/code-quality-suite.git"
+  },
+  "homepage": "https://github.com/eoghks/code-quality-suite",
+  "keywords": [
+    "java",
+    "spring-boot",
+    "jakarta",
+    "refactoring",
+    "code-quality",
+    "code-review",
+    "sql-injection",
+    "mybatis",
+    "jpa",
+    "lombok"
+  ],
+  "agents": [
+    "./agents/code-refactoring-agent.md",
+    "./agents/code-quality-agent.md"
+  ],
+  "hooks": "./hooks/hooks.json",
+  "commands": [
+    "./commands/run-pipeline.md"
+  ]
+}
