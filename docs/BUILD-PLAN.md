@@ -179,11 +179,24 @@
 
 ---
 
-## Phase 8: plugin.json & marketplace.json ⏳
+## Phase 8: plugin.json & marketplace.json ✅
 
-**대기 중 질문 예시:**
-- Plugin 이름·버전·라이선스·author?
-- Marketplace 카테고리?
+**결정 사항:**
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| 이름 | `code-quality-suite` | Phase 0 결정, 저장소명 일치 |
+| 버전 | **0.1.0** | SemVer 초기, 검증 단계 |
+| 라이선스 | **MIT** | 가장 허용적, 공유 친화적 |
+| author | `daehwan` (이메일 미포함) | 개인정보 보호, GitHub 계정 `eoghks` 로 연결 |
+| 카테고리 | `development-tools`, `java-tooling` | 개발 도구 + 자바 필터링 노출 |
+| 키워드 | java, spring-boot, jakarta, refactoring, code-quality, code-review, sql-injection, mybatis, jpa, lombok | 검색 최적화 |
+| components | agents(2) + hooks(1) + commands(1) 경로 명시 | Plugin 로더가 자동 인식 |
+| compatibility | `claude-code: >=1.0.0` | 최소 호환 버전 명시 |
+
+**산출물:**
+- [x] `.claude-plugin/plugin.json` — Plugin 매니페스트 (Agent/Hook/Command 컴포넌트 선언)
+- [x] `.claude-plugin/marketplace.json` — 마켓플레이스 등록 (카테고리·태그·문서 링크)
 
 ---
 
@@ -209,7 +222,7 @@
 | 5. refactoring-agent | ✅ 완료 | 2026-04-21 |
 | 6. quality-agent | ✅ 완료 | 2026-04-21 |
 | 7. hooks & commands | ✅ 완료 | 2026-04-21 |
-| 8. plugin 매니페스트 | ⏳ 대기 | - |
+| 8. plugin 매니페스트 | ✅ 완료 | 2026-04-21 |
 | 9. 문서 & 최종 검증 | ⏳ 대기 | - |
 
 > **범례:** ✅ 완료 · 🟡 진행 중 · ⏳ 대기
