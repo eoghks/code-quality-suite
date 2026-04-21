@@ -116,13 +116,25 @@
 
 ---
 
-## Phase 5: agents/code-refactoring-agent.md ⏳
+## Phase 5: agents/code-refactoring-agent.md ✅
 
-**대기 중 질문 예시:**
-- description 문구 확정?
-- 모델 선택?
-- `tools` 허용 범위?
-- 브랜치 네이밍 규칙?
+**결정 사항:**
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| 모델 | `claude-sonnet-4-6` | 빠르고 저렴, 일반 리팩토링에 충분 |
+| 툴 권한 | **풀 권한** — Read/Grep/Glob + Edit/Write + git add/commit/checkout -b/status/diff/branch/log + mvn·gradle test | 반자동 리팩토링·테스트 실행·커밋 자동화 |
+| 브랜치 전략 | **자동 감지 + 생성** — feature/bugfix/refactor 구분 후 자동 분기, main/master 직접 커밋 차단 | 조직 규칙 자동 준수 |
+| description 톤 | **적극적 위임 트리거** — "자바 코드 작업 직후 호출" 문구로 메인 Claude 자동 위임 유도 | 개발자 호출 누락 방지 |
+| 규칙 로드 순서 | Plugin → 프로젝트 → 사용자 (뒤가 앞을 보완) | 3단 오버라이드 준수 |
+
+**금지 사항 명시:**
+- main/master 직접 커밋, `git push`, `git push --force`, `git reset --hard`, `git branch -D`, `--no-verify`, `--amend`(push 된 커밋)
+- 테스트 실패 상태 커밋 종료
+- 한 커밋에 기능+리팩토링+스타일 혼합
+
+**산출물:**
+- [x] `agents/code-refactoring-agent.md` 작성 (규칙 로드 · 브랜치 자동화 · 리팩토링 절차 · 테스트 병행 · 아토믹 커밋 · 완료 보고 · 금지 사항)
 
 ---
 
@@ -166,12 +178,12 @@
 
 | Phase | 상태 | 완료일 |
 |---|---|---|
-| 0. 저장소 초기화 | 🟡 진행 중 (원격 연결 대기) | - |
+| 0. 저장소 초기화 | ✅ 완료 (원격 push 완료) | 2026-04-21 |
 | 1. BUILD-PLAN 초안 | ✅ 완료 | 2026-04-21 |
 | 2. shared-standards | ✅ 완료 | 2026-04-21 |
 | 3. refactor-rules | ✅ 완료 | 2026-04-21 |
 | 4. quality-rules | ✅ 완료 | 2026-04-21 |
-| 5. refactoring-agent | ⏳ 대기 | - |
+| 5. refactoring-agent | ✅ 완료 | 2026-04-21 |
 | 6. quality-agent | ⏳ 대기 | - |
 | 7. hooks & commands | ⏳ 대기 | - |
 | 8. plugin 매니페스트 | ⏳ 대기 | - |
