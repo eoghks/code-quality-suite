@@ -138,12 +138,25 @@
 
 ---
 
-## Phase 6: agents/code-quality-agent.md ⏳
+## Phase 6: agents/code-quality-agent.md ✅
 
-**대기 중 질문 예시:**
-- 실패 시 차단 vs 보고?
-- 테스트 자동 실행 포함?
-- 리포트 출력 형식?
+**결정 사항:**
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| 모델 | `claude-sonnet-4-6` | Refactor 와 동일, 비용 일관성 |
+| 테스트 실행 | **자동 실행** — pom/gradle 감지 후 `mvn test` 또는 `./gradlew test` | 실제 실패 감지 필수 |
+| 실패 시 동작 | **Critical 만 자동 차단 (exit 2)** | SQL Injection/테스트 실패는 보안 사고 직결, High 이하는 개발자 재량 |
+| 리포트 형식 | **체크리스트 + 심각도 그룹화** (Critical/High/Medium/Low) + 식별 코드 `[SQL-INJ]` · `[LAYER]` 등 | 사람 가독성 + 파싱 용이 |
+| 자동 차단 구현 | Agent 는 보고서 마지막 줄에 `[BLOCK: COMMIT STOP]` 또는 `[PASS: COMMIT READY]` 마커 출력 → Hook 스크립트(Phase 7)가 파싱해 exit 2 반환 | Agent 권한 제약 우회 (프로세스 exit code 제어 불가) |
+| 권한 | 읽기 전용 — Read/Grep/Glob + git diff/log/status/branch + mvn·gradle test | Edit/Write/git add/commit 금지 |
+
+**`quality-rules.md` 동기화:**
+- 5.3 절 "차단하지 않음" → "BLOCK 마커 + Hook exit 2 구조" 로 개정
+
+**산출물:**
+- [x] `agents/code-quality-agent.md` 작성 (규칙 로드 · diff 기반 검증 · 5축 검증 · BLOCK 마커 · 권한 제약 · 호출 맥락별 동작)
+- [x] `rules/quality-rules.md` 5.3 절 업데이트
 
 ---
 
@@ -184,7 +197,7 @@
 | 3. refactor-rules | ✅ 완료 | 2026-04-21 |
 | 4. quality-rules | ✅ 완료 | 2026-04-21 |
 | 5. refactoring-agent | ✅ 완료 | 2026-04-21 |
-| 6. quality-agent | ⏳ 대기 | - |
+| 6. quality-agent | ✅ 완료 | 2026-04-21 |
 | 7. hooks & commands | ⏳ 대기 | - |
 | 8. plugin 매니페스트 | ⏳ 대기 | - |
 | 9. 문서 & 최종 검증 | ⏳ 대기 | - |
