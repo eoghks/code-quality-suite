@@ -47,13 +47,27 @@
 
 ---
 
-## Phase 2: rules/shared-standards.md (공통 표준) ⏳
+## Phase 2: rules/shared-standards.md (공통 표준) ✅
 
-**대기 중 질문 예시:**
-- 대상 언어·프레임워크?
-- Lombok 필수 어노테이션 목록?
-- 레이어 패턴 고정 여부?
-- 주석 언어?
+**결정 사항:**
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| 언어·FW 스택 | Java + Jakarta EE + Spring Boot | 전역 CLAUDE.md 와 일치 |
+| Java 버전 | 17 이상 권장 | LTS |
+| Lombok 범위 | 핵심만 (`@Getter`, `@Setter`, `@Slf4j`) | 명시성 유지, `@Data` 금지 |
+| 레이어 패턴 | **조건부** — MyBatis: `Controller→Service→Dao` / JPA: `Controller→Service→Repository` | Stack 별 관용 준수 |
+| 데이터 응답 | `ResponseEntity` 사용 | Spring 관용 |
+| 주석 언어 | 한국어 권장 (식별자는 영어) | 전역 정책 |
+| 커밋 메시지 | 한국어 본문 + 영어 타입 prefix | `feat:`, `fix:` 등 관용 병행 |
+
+**금지 패턴 명시:**
+- `javax.*` / `@Data` / `@EqualsAndHashCode` 무분별 사용
+- Controller 내 비즈니스 로직 / Service 에서 DB 직접 접근
+- null 반환 / `Map<String, Object>` 인자·반환 / SQL `${}` 치환
+
+**산출물:**
+- [x] `rules/shared-standards.md` 작성
 
 ---
 
@@ -130,8 +144,8 @@
 | Phase | 상태 | 완료일 |
 |---|---|---|
 | 0. 저장소 초기화 | 🟡 진행 중 (원격 연결 대기) | - |
-| 1. BUILD-PLAN 초안 | 🟡 진행 중 | - |
-| 2. shared-standards | ⏳ 대기 | - |
+| 1. BUILD-PLAN 초안 | ✅ 완료 | 2026-04-21 |
+| 2. shared-standards | ✅ 완료 | 2026-04-21 |
 | 3. refactor-rules | ⏳ 대기 | - |
 | 4. quality-rules | ⏳ 대기 | - |
 | 5. refactoring-agent | ⏳ 대기 | - |
