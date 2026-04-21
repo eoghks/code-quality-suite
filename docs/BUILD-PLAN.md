@@ -160,12 +160,22 @@
 
 ---
 
-## Phase 7: hooks & commands ⏳
+## Phase 7: hooks & commands ✅
 
-**대기 중 질문 예시:**
-- PreToolUse 매처 범위?
-- 소스 파일 확장자 화이트리스트?
-- `/run-pipeline` 인자 기본값?
+**결정 사항:**
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| Hook 매처 | `Bash(git commit:*)` 직전만 | 가장 흔한 진입점, 단순·이해 쉬움 |
+| 화이트리스트 | `.java`, `.xml`, `.jsp`, `.js`, `.css`, `.html`, `pom.xml`, `build.gradle`, `build.gradle.kts` | 자바 + 프론트엔드 + 빌드 스크립트 |
+| Hook 엄격도 | **힌트 주입 + BLOCK 마커 감지 시 exit 2** | 유연함 + Critical 자동 차단 |
+| `/run-pipeline` 인자 | 없으면 현재 브랜치 전체, 파일/브랜치 지정 가능 | 중간 점검부터 타겟 검증까지 |
+| BLOCK 연동 | `.quality-report.md` 마지막 줄 `[BLOCK: COMMIT STOP]` 감지 → exit 2 | Agent exit code 제약 우회, 이전 Agent 결과 재사용 |
+
+**산출물:**
+- [x] `hooks/hooks.json` — PreToolUse 매처 설정 (timeout 5s)
+- [x] `hooks/pre-commit-pipeline.sh` — 화이트리스트 필터 + 파이프라인 권고 + BLOCK 감지
+- [x] `commands/run-pipeline.md` — 슬래시 커맨드 (인자 규칙 + 4단계 실행 절차 + 요약 템플릿)
 
 ---
 
@@ -198,7 +208,7 @@
 | 4. quality-rules | ✅ 완료 | 2026-04-21 |
 | 5. refactoring-agent | ✅ 완료 | 2026-04-21 |
 | 6. quality-agent | ✅ 완료 | 2026-04-21 |
-| 7. hooks & commands | ⏳ 대기 | - |
+| 7. hooks & commands | ✅ 완료 | 2026-04-21 |
 | 8. plugin 매니페스트 | ⏳ 대기 | - |
 | 9. 문서 & 최종 검증 | ⏳ 대기 | - |
 
