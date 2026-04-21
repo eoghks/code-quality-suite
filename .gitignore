@@ -1,0 +1,30 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# 편집기
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+*.orig
+
+# 로컬 전용 파일 (커밋 방지)
+*.local
+*.local.*
+.env
+.env.*
+
+# Claude Code 로컬 설정
+.claude/settings.local.json
+
+# 테스트/빌드 산출물
+node_modules/
+dist/
+build/
+out/
+*.log
