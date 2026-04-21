@@ -71,14 +71,25 @@
 
 ---
 
-## Phase 3: rules/refactor-rules.md ⏳
+## Phase 3: rules/refactor-rules.md ✅
 
-**대기 중 질문 예시:**
-- 메서드 최대 줄 수?
-- 테스트 코드 줄 수 제한 적용?
-- null vs Optional/빈 컬렉션?
-- `Map<String, Object>` 정책?
-- 매직넘버 예외?
+**결정 사항:**
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| 메서드 최대 줄 수 | **50줄** | Claude 추천 (Spring+MyBatis/JPA 현실적 균형점) |
+| 테스트 줄 수 제한 | 동일 적용 (50줄) | 테스트도 복잡도 관리 |
+| null 대체 | 단일→`Optional`, 컨테이너→빈 컨테이너, 배열→길이 0 배열 | 타입별 명확 구분 |
+| `Map<String,Object>` | 최대한 금지, DTO/VO 강제. 불가피 시 주석 필수 | 타입 안전성·가독성 |
+| 매직넘버 | `0`, `1`, `-1` 제외 전부 상수화 | 관용적 값만 예외 |
+| 설계 패턴 | **최대한 활용** — Strategy / Factory / Builder / Template Method 우선 + Facade/Adapter/Decorator/Observer 권장 | 사용자 지시 "디자인 패턴 최대한 활용" |
+| 중복 제거 | 3회 이상 → 메서드 추출, 2개 클래스 이상 → 공통 유틸 | DRY |
+| 네이밍 | 동사+명사, is/has/can 접두사, 약어 금지 | 가독성 |
+| 테스트 동시 갱신 | Refactor Agent 책임 | CLAUDE.md 규칙 |
+| 브랜치·커밋 | `feature/*` · `bugfix/*` · `refactor/*` 강제, 아토믹 커밋 | 조직 규칙 반영 |
+
+**산출물:**
+- [x] `rules/refactor-rules.md` 작성
 
 ---
 
@@ -146,7 +157,7 @@
 | 0. 저장소 초기화 | 🟡 진행 중 (원격 연결 대기) | - |
 | 1. BUILD-PLAN 초안 | ✅ 완료 | 2026-04-21 |
 | 2. shared-standards | ✅ 완료 | 2026-04-21 |
-| 3. refactor-rules | ⏳ 대기 | - |
+| 3. refactor-rules | ✅ 완료 | 2026-04-21 |
 | 4. quality-rules | ⏳ 대기 | - |
 | 5. refactoring-agent | ⏳ 대기 | - |
 | 6. quality-agent | ⏳ 대기 | - |
