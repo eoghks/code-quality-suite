@@ -93,14 +93,26 @@
 
 ---
 
-## Phase 4: rules/quality-rules.md ⏳
+## Phase 4: rules/quality-rules.md ✅
 
-**대기 중 질문 예시:**
-- SQL `${}` 경고 vs 차단?
-- 테스트 커버리지 기준?
-- 민감정보 키워드?
-- 테스트 실행 명령?
-- 성능 규칙 범위?
+**결정 사항:**
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| SQL `${}` 대응 | **차단 (Critical)** | SQL Injection 심각도 최상, 조건부 주석 명시 시만 허용 |
+| 테스트 커버리지 범위 | **신규/변경 메서드만** | 레거시 부담 없는 실용적 검증, diff 기반 |
+| 민감정보 키워드 | 기본 3종(`password`/`token`/`secret`) + 인증 파생(`apiKey`/`accessKey`/`privateKey`/`credential`/`authorization`/`bearer`) + PII(`ssn`/`jumin`/`주민등록번호`/`phone`/`연락처`/`email`) | 국내 개인정보보호법 + API 인증 맥락 |
+| 테스트 실행 명령 | **자동 감지** — `pom.xml` → `mvn test`, `build.gradle` → `./gradlew test` | 두 빌드 도구 혼용 환경 지원 |
+| 성능 규칙 범위 | N+1 쿼리 + 인덱스 힌트 + 반복 문자열 연산 + **로거 파라미터 방식** + **`findAll()` 후 필터링 안티패턴** | 정적 분석 가능한 실용적 항목만 |
+
+**심각도 체계:**
+- **Critical** (차단 권고) — SQL Injection, 테스트 실패
+- **High** (검토 강력 권고) — 레이어 위반, 민감정보 노출, N+1, `findAll()` 필터
+- **Medium** (다음 리팩토링) — 50줄 초과, null 반환, 로거 방식, 반복 문자열
+- **Low** (참고) — 인덱스 힌트, 미확정 Lombok
+
+**산출물:**
+- [x] `rules/quality-rules.md` 작성 (보안 · 규칙 준수 · 테스트 커버리지 · 성능 · 보고 형식 · 권한 범위)
 
 ---
 
@@ -158,7 +170,7 @@
 | 1. BUILD-PLAN 초안 | ✅ 완료 | 2026-04-21 |
 | 2. shared-standards | ✅ 완료 | 2026-04-21 |
 | 3. refactor-rules | ✅ 완료 | 2026-04-21 |
-| 4. quality-rules | ⏳ 대기 | - |
+| 4. quality-rules | ✅ 완료 | 2026-04-21 |
 | 5. refactoring-agent | ⏳ 대기 | - |
 | 6. quality-agent | ⏳ 대기 | - |
 | 7. hooks & commands | ⏳ 대기 | - |
