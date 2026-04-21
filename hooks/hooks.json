@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash(git commit:*)",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-pipeline.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
