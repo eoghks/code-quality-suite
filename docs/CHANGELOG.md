@@ -4,6 +4,81 @@
 
 ---
 
+## [0.2.0] - 2026-04-21
+
+**Hardening Release.** 리팩토링·보안·품질 규칙 대폭 강화, OWASP 전담 Agent 신설, SpotBugs/JaCoCo 통합, Baseline 시스템 도입.
+
+### Added — Agent
+
+- `security-audit-agent` — OWASP Top 10 전담 보안 정적 스캔 (읽기 전용)
+  - A01 Broken Access Control (`@PreAuthorize` 누락)
+  - A02 Cryptographic Failures (MD5/SHA1·SecureRandom·하드코딩 Secret regex)
+  - A03 Injection (SQL `${}` · Command · LDAP · HTTP Header)
+  - A04~A10 전체 + Cookie/XXE/Path Traversal
+  - `.security-report.md` → `[BLOCK: SECURITY STOP]` / `[PASS: SECURITY OK]` 마커
+
+### Added — Rules
+
+- `rules/security-rules.md` — OWASP A01~A10 + 추가 항목 전체 검증 기준
+  - 하드코딩 Secret 정규식: AWS `AKIA*`, GitHub `ghp_*`, JWT, Private Key, Slack
+  - 취약 의존성 수동 목록: Log4Shell · Spring4Shell · commons-text · jackson · h2database
+- `rules/baseline-policy.md` — Baseline 포맷·등록 원칙·Agent 동작 흐름 정의
+
+### Added — Commands
+
+- `/security-scan [target]` — security-audit-agent 단독 호출
+- `/baseline create|update|show` — `.quality-baseline.json` 생성·갱신·조회
+
+### Added — Baseline 시스템
+
+- `.quality-baseline.json` — SHA-256 fingerprint 기반 레거시 위반 등록
+- 신규 위반만 차단, 기존 위반은 `[BASELINE]` 태그로 분리 보고
+- Baseline 없는 신규 프로젝트는 기존 동작 동일
+
+### Changed — Rules
+
+- `rules/refactor-rules.md` — §10~12 추가 (메트릭·런타임 안전·응집도)
+  - §10 메트릭: Cyclomatic Complexity 10 · Cognitive 15 · 파라미터 3 · 필드 10
+  - §11 런타임 안전: `catch(Exception)` · `printStackTrace()` · try-with-resources 강제
+  - §12 응집도·결합도: 클래스 400줄 · God Class · Law of Demeter 3단계
+- `rules/quality-rules.md` — 보안 섹션 security-rules.md 로 이관, §4A 신설
+  - SpotBugs 카테고리→심각도 매핑 (MALICIOUS_CODE→Critical, CORRECTNESS→High)
+  - JaCoCo 라인 커버리지 80% 임계값 (변경 메서드 기준)
+  - Graceful fallback + 빌드 설정 스니펫
+
+### Changed — Agent
+
+- `code-quality-agent` — 보안 최소 스모크 체크만 유지 (전체 보안은 security-audit-agent)
+  - §3.6 SpotBugs/JaCoCo 리포트 파싱 절차 추가
+  - `--strict` 모드 (Baseline 무시) 맥락 반영
+
+### Changed — Pipeline
+
+- `commands/run-pipeline.md` — 2-stage → **3-stage** (Refactor → Security → Quality)
+  - `--strict` 인자: Baseline 무시 + 전체 소스 전수 검사
+- `hooks/pre-commit-pipeline.sh` — `.security-report.md` BLOCK 마커 감지 추가
+  - Security · Quality 둘 중 하나라도 BLOCK → `exit 2`
+
+### Changed — Plugin 메타
+
+- `plugin.json` · `marketplace.json` — v0.2.0, Agent 3개 · Command 3개, categories에 `security` 추가
+
+### Added — 문서
+
+- `docs/BASELINE.md` — Baseline 전용 가이드 (생성·업데이트·해제·팀 운영)
+- `docs/INSTALL.md` — SpotBugs/JaCoCo Maven/Gradle 빌드 설정 절 추가
+
+### Roadmap (v0.3+)
+
+- Immutability / Guard clause 규칙 (방어적 설계)
+- `architecture-review-agent` (Hexagonal/Clean/DDD)
+- `test-generation-agent` (테스트 스켈레톤 자동 생성)
+- `db-migration-agent` (Flyway/Liquibase 안전성)
+- PMD · Checkstyle · OWASP Dependency-Check 통합
+- GitHub Actions CI/CD 템플릿
+
+---
+
 ## [0.1.0] - 2026-04-21
 
 **첫 검증 릴리즈.** Phase 0~9 구축 완료, 개인 GitHub 저장소 공개 배포.

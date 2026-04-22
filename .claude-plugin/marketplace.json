@@ -1,7 +1,7 @@
 {
   "name": "code-quality-suite",
-  "version": "0.1.0",
-  "description": "Java/Spring Boot 코드 리팩토링 + 품질 검증 전문 Agent Plugin — Refactor·Quality 2단 파이프라인, git commit Hook 연동, 3단 Rules 오버라이드",
+  "version": "0.2.0",
+  "description": "Java/Spring Boot 코드 리팩토링 + 보안 + 품질 검증 전문 Agent Plugin — Refactor·Security·Quality 3-stage 파이프라인, OWASP Top 10, SpotBugs/JaCoCo 통합, Baseline 시스템, git commit Hook 연동",
   "author": {
     "name": "daehwan"
   },
@@ -9,7 +9,8 @@
   "repository": "https://github.com/eoghks/code-quality-suite",
   "categories": [
     "development-tools",
-    "java-tooling"
+    "java-tooling",
+    "security"
   ],
   "tags": [
     "java",
@@ -17,10 +18,15 @@
     "jakarta",
     "refactoring",
     "code-quality",
-    "static-analysis",
+    "owasp",
+    "security-audit",
+    "spotbugs",
+    "jacoco",
+    "baseline",
     "sql-injection",
     "mybatis",
-    "jpa"
+    "jpa",
+    "static-analysis"
   ],
   "compatibility": {
     "claude-code": ">=1.0.0"
@@ -29,6 +35,7 @@
     "readme": "./docs/README.md",
     "install": "./docs/INSTALL.md",
     "customization": "./docs/CUSTOMIZATION.md",
-    "changelog": "./docs/CHANGELOG.md"
+    "changelog": "./docs/CHANGELOG.md",
+    "baseline": "./docs/BASELINE.md"
   }
 }
