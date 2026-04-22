@@ -1,7 +1,7 @@
 {
   "name": "code-quality-suite",
-  "version": "0.1.0",
-  "description": "Java/Spring Boot 코드 리팩토링 + 품질 검증 전문 Agent 번들. Refactor Agent(구조 개선·테스트 동시 갱신·아토믹 커밋) + Quality Agent(보안·레이어·테스트·성능 검증) + git commit 직전 Hook 자동 파이프라인",
+  "version": "0.2.0",
+  "description": "Java/Spring Boot 코드 리팩토링 + 보안 + 품질 검증 전문 Agent 번들. Refactor Agent(구조 개선) + Security Agent(OWASP Top 10) + Quality Agent(SpotBugs/JaCoCo 통합) + 3-stage 파이프라인 Hook + Baseline 시스템",
   "author": {
     "name": "daehwan"
   },
@@ -17,18 +17,25 @@
     "jakarta",
     "refactoring",
     "code-quality",
-    "code-review",
+    "owasp",
+    "security-audit",
+    "spotbugs",
+    "jacoco",
     "sql-injection",
     "mybatis",
     "jpa",
+    "baseline",
     "lombok"
   ],
   "agents": [
     "./agents/code-refactoring-agent.md",
+    "./agents/security-audit-agent.md",
     "./agents/code-quality-agent.md"
   ],
   "hooks": "./hooks/hooks.json",
   "commands": [
-    "./commands/run-pipeline.md"
+    "./commands/run-pipeline.md",
+    "./commands/security-scan.md",
+    "./commands/baseline.md"
   ]
 }
