@@ -16,7 +16,27 @@
 
 ## v0.3.0 — 방어적 설계 + 아키텍처 검증
 
-**목표:** 코드 설계 품질을 선언적으로 강제.
+**목표:** 코드 설계 품질을 선언적으로 강제. + v0.2.0 검증·안정화 병행.
+
+### v0.2.0 미해결 개선사항
+
+- **시나리오 테스트 프로젝트 구축**
+  - CC 11 메서드, 파라미터 4개, God Class, `catch(Exception)`, try-finally, LoD 체인 등 위반 더미 파일 세트 작성
+  - `security-audit-agent` 대상: Jackson `enableDefaultTyping`, MD5, 하드코딩 JWT, `Runtime.exec(userInput)`, `String.equals(password)`
+  - 각 위반이 올바른 심각도로 감지·보고되는지 수동 검증
+  - Baseline create → 신규 위반 추가 → `[BASELINE]` 분리 흐름 end-to-end 확인
+
+- **`security-rules.md` 로드 최적화**
+  - 현재 단일 392줄 파일 → 카테고리별 분리 또는 심각도 High 이상 규칙만 기본 로드하는 구조 검토
+  - Agent 컨텍스트 토큰 부담 절감
+
+- **JaCoCo 변경 메서드 커버리지 파싱 개선**
+  - `git diff` 기반 변경 메서드 추출 → JaCoCo XML 매핑이 실제로 정확히 동작하는지 검증
+  - 파싱 실패 시 fallback 로직 명확화
+
+- **Hook 엣지케이스 처리**
+  - 리포트 파일 부재(최초 커밋, Agent 미실행) 시 Hook 동작 명세화
+  - skip 조건 (`--no-verify` 대안) 공식 문서화
 
 ### 리팩토링 규칙 강화
 
