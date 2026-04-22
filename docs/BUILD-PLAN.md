@@ -220,6 +220,39 @@
 
 ---
 
+## Phase 10: v0.2.0 Hardening Release ✅
+
+**결정 사항:**
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| 리팩토링 줄 수 | 50줄 유지 | 사용자 확인 |
+| 리팩토링 강화 축 | 메트릭(CC/Cognitive/파라미터/필드) + 런타임 안전(예외/Resource) + 응집도(클래스 크기/LoD) | 사용자 선택 3축 |
+| 보안 검증 | security-audit-agent 신설 (OWASP Top 10) | 사용자 선택 |
+| 외부 툴 | SpotBugs + JaCoCo 통합 | 사용자 선택 |
+| 레거시 대응 | Baseline 도입 | 사용자 선택 |
+
+**산출물:**
+- [x] `rules/refactor-rules.md` — §10(메트릭) · §11(런타임 안전) · §12(응집도) 추가
+- [x] `rules/security-rules.md` 신설 — OWASP A01~A10 + Cookie/XXE/PathTraversal + Secret regex + 취약 의존성
+- [x] `rules/baseline-policy.md` 신설 — fingerprint 포맷, 등록 원칙, 보고 형식
+- [x] `rules/quality-rules.md` — 보안 분리, §4A SpotBugs/JaCoCo 파싱 추가
+- [x] `agents/security-audit-agent.md` 신설 — OWASP 전담, 읽기 전용, `.security-report.md` 출력
+- [x] `agents/code-quality-agent.md` — 보안 최소 스모크 체크, §3.6 SpotBugs/JaCoCo, --strict 맥락
+- [x] `commands/security-scan.md` 신설 — `/security-scan [target]`
+- [x] `commands/baseline.md` 신설 — `/baseline create|update|show`
+- [x] `commands/run-pipeline.md` — 3-stage, `--strict` 옵션
+- [x] `hooks/pre-commit-pipeline.sh` — `.security-report.md` BLOCK 마커 감지 추가
+- [x] `.claude-plugin/plugin.json` · `marketplace.json` — v0.2.0
+- [x] `docs/BASELINE.md` 신설
+- [x] `docs/CHANGELOG.md` — [0.2.0] 섹션
+- [x] `docs/README.md` — 3 Agent + 3 Command, 보고서 샘플 갱신
+- [x] `docs/INSTALL.md` — §8 SpotBugs/JaCoCo 설정 절
+- [x] `docs/BUILD-PLAN.md` — Phase 10 추가 (이 항목)
+- [x] `README.md` (루트) — v0.2.0 소개 업데이트
+
+---
+
 ## 진행 현황 요약
 
 | Phase | 상태 | 완료일 |
@@ -233,6 +266,7 @@
 | 6. quality-agent | ✅ 완료 | 2026-04-21 |
 | 7. hooks & commands | ✅ 완료 | 2026-04-21 |
 | 8. plugin 매니페스트 | ✅ 완료 | 2026-04-21 |
-| 9. 문서 & 최종 검증 | ✅ 완료 | 2026-04-21 |
+| 9. 문서 & 최종 검증 | ✅ 완료 (v0.1.0) | 2026-04-21 |
+| 10. v0.2.0 Hardening Release | ✅ 완료 | 2026-04-21 |
 
 > **범례:** ✅ 완료 · 🟡 진행 중 · ⏳ 대기
