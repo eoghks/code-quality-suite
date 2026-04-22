@@ -3,71 +3,28 @@
 > Quality Agent 가 참조하는 **검증 기준**입니다.
 > 공통 표준은 `shared-standards.md` 에서 먼저 로드됩니다.
 > Quality Agent 는 **읽기 전용** — 위반 사항을 검출해 **보고**하며, 수정은 Refactor Agent 또는 개발자에게 위임합니다.
+>
+> **v0.2.0 변경점:** 보안 검증은 `security-rules.md` + `security-audit-agent` 로 **분리**되었습니다. 이 파일은 구조·레이어·테스트·성능·외부 툴 리포트 파싱만 다룹니다.
 
 ---
 
-## 1. 보안 검증 (Security)
+## 1. 보안 검증 (보조) — `security-rules.md` 참조
 
-### 1.1 SQL Injection — `${}` 직접 치환 **[차단 수준]**
+보안 검증의 **주 책임은 `security-audit-agent`** 로 이관되었습니다. 다만 Quality Agent 도 **최소 스모크 테스트** 차원에서 아래 2개만 유지 점검합니다 (security-audit-agent 미실행 시 안전망).
 
-MyBatis 매퍼에서 `${}` 직접 치환은 **Critical 위반**. Quality Agent 는 발견 시 **커밋 중단 권고**.
+### 1.1 SQL Injection `${}` — 최소 체크 **[Critical]**
 
-| 사용 | 판정 | 처리 |
-|---|---|---|
-| `#{parameter}` | ✅ OK | 바인딩 파라미터 (정상) |
-| `${columnName}` (ORDER BY 정렬 컬럼) | ⚠️ 허용 조건부 | 화이트리스트 검증 주석 필수 |
-| `${tableName}` (동적 테이블) | ⚠️ 허용 조건부 | 상수 enum / 사전 검증 주석 필수 |
-| `${value}` (사용자 입력 → WHERE 값) | ❌ **차단** | SQL Injection 치명적 취약점 |
+`${}` 직접 치환 발견 + 주석에 `화이트리스트`·`검증` 단어 없음 → **Critical + BLOCK 마커**. 상세 규칙·예외 처리는 `security-rules.md §A03.1` 참조.
 
-**예시:**
-```xml
-<!-- ❌ Critical 차단 -->
-<select id="findUser">
-  SELECT * FROM user WHERE name = '${name}'
-</select>
+### 1.2 민감정보 로그 출력 최소 체크 **[High]**
 
-<!-- ✅ 권장 -->
-<select id="findUser">
-  SELECT * FROM user WHERE name = #{name}
-</select>
+로그 메시지 문자열에 `password`·`token`·`secret` 3개 키워드 동반 시 **High 보고**. 상세 PII 목록·응답 DTO 검증은 `security-rules.md §A09.1` 참조.
 
-<!-- ⚠️ 조건부 허용 (주석으로 사유 명시) -->
-<select id="findSorted">
-  <!-- sortColumn 은 Controller 에서 화이트리스트 검증 완료 -->
-  SELECT * FROM user ORDER BY ${sortColumn}
-</select>
-```
+### 1.3 입력 검증 지침 요약
 
-**Quality Agent 동작:** `${...}` 패턴 스캔 → 주석에 화이트리스트/검증 명시 없으면 **Critical 보고 + 커밋 중단 권고**.
+Controller 진입점 Bean Validation (`@Valid` · `@NotNull` · `@Size` · `@Pattern`) 부재 감지 시 **Medium 보고**. 깊이 있는 입력 검증은 security-audit-agent 가 담당.
 
-### 1.2 민감정보 로그 출력 금지
-
-**스캔 대상 키워드** (대소문자 무관):
-
-| 카테고리 | 키워드 |
-|---|---|
-| 기본 3종 | `password`, `token`, `secret` |
-| 인증 파생 | `apiKey`, `accessKey`, `privateKey`, `credential`, `authorization`, `bearer` |
-| 개인정보 (PII) | `ssn`, `jumin`, `주민등록번호`, `phone`, `연락처`, `email`(로그 맥락) |
-
-**검출 패턴:**
-```java
-// ❌ 위반 — 로그에 민감정보 노출
-log.info("login password: {}", user.getPassword());
-log.debug("jwt token=" + token);
-
-// ✅ 권장 — 마스킹 또는 존재 여부만 로깅
-log.info("login user: {}", user.getUsername());
-log.debug("jwt token present: {}", token != null);
-```
-
-**응답 DTO 검증:** 비밀번호·토큰 필드가 Response DTO 에 포함되면 **High 보고**.
-
-### 1.3 입력 검증 (Controller 진입점)
-
-- `@RequestParam`·`@PathVariable` 파라미터는 Bean Validation (`@NotNull`, `@Size`, `@Pattern`) 또는 수동 검증 필요
-- 화이트리스트 기반 허용 목록 선호 (블랙리스트 금지)
-- 길이·타입·형식 제한 필수
+> **나머지 보안 검증 (A01~A10 전체 · XXE · Path Traversal · Secret scanning · Timing attack)** → `security-audit-agent` 단독 수행. `/run-pipeline` 은 Refactor → **Security** → Quality 3-stage 로 security-audit-agent 를 반드시 포함합니다.
 
 ---
 
@@ -227,6 +184,98 @@ List<User> active = userRepository.findByStatus(Status.ACTIVE);
 ```
 
 **감지 신호:** `findAll()`·`selectAll()` 결과에 `stream().filter()` / `for` 조건 필터.
+
+---
+
+## 4A. 외부 정적 분석 도구 리포트 파싱 (v0.2.0+)
+
+Quality Agent 는 프로젝트 빌드 결과물에 **SpotBugs** 와 **JaCoCo** 리포트가 존재하면 파싱하여 보고서에 통합합니다. 리포트가 없으면 Low 보고 + 설정 가이드 링크 출력.
+
+### 4A.1 SpotBugs 리포트 파싱
+
+**대상 경로 (자동 탐색):**
+| 빌드 도구 | 리포트 경로 |
+|---|---|
+| Maven | `target/spotbugsXml.xml` |
+| Gradle | `build/reports/spotbugs/*.xml` · `build/reports/spotbugs/main/spotbugs.xml` |
+
+**카테고리 → 심각도 매핑:**
+| SpotBugs 카테고리 | Quality 심각도 | 코드 |
+|---|---|---|
+| `MALICIOUS_CODE` · `SECURITY` | **Critical** | `[SB-SEC]` |
+| `CORRECTNESS` | **High** | `[SB-BUG]` |
+| `PERFORMANCE` · `MT_CORRECTNESS` (Thread) | **High** | `[SB-PERF]` · `[SB-THREAD]` |
+| `BAD_PRACTICE` | **Medium** | `[SB-BAD]` |
+| `DODGY_CODE` · `I18N` | **Medium** | `[SB-DODGY]` |
+| `STYLE` | **Low** | `[SB-STYLE]` |
+
+**BugInstance 출력 형식:**
+```
+[SB-BUG] UserService.java:78 — NP_NULL_ON_SOME_PATH: value may be null (SpotBugs)
+```
+
+**우선순위 필터:** SpotBugs `priority` 1(High) 만 Critical/High 반영. 2(Normal), 3(Low) 는 Medium/Low 로 완화.
+
+### 4A.2 JaCoCo 커버리지 파싱
+
+**대상 경로 (자동 탐색):**
+| 빌드 도구 | 리포트 경로 |
+|---|---|
+| Maven | `target/site/jacoco/jacoco.xml` |
+| Gradle | `build/reports/jacoco/test/jacocoTestReport.xml` |
+
+**커버리지 기준 (신규·변경 메서드 기준):**
+| 지표 | 임계값 | 심각도 |
+|---|---|---|
+| 라인 커버리지 | **80% 미만** | **High** |
+| 브랜치 커버리지 | 70% 미만 | **Medium** |
+| 전체 프로젝트 커버리지 | 참고용 (차단 기준 아님) | Low |
+
+**계산 방식:**
+1. `git diff --cached` (또는 `HEAD~1 HEAD`) 로 변경 메서드 시그니처 수집
+2. JaCoCo XML 의 `<method name="..." desc="...">` 태그에서 해당 메서드 찾음
+3. `<counter type="LINE" covered="N" missed="M" />` 로 % 계산
+4. 80% 미만 → `[COV-LOW] UserService#findById — 60% (권장 80%)` **High**
+
+### 4A.3 Graceful Fallback (리포트 부재)
+
+리포트 파일 탐색 후 모두 부재 시:
+- **Low 보고:** `[SB-MISSING] SpotBugs 리포트 미발견. mvn spotbugs:spotbugs 또는 gradle spotbugsMain 실행 필요`
+- **Low 보고:** `[COV-MISSING] JaCoCo 리포트 미발견. mvn test (Maven) 또는 gradle jacocoTestReport (Gradle) 실행 필요`
+- 설치 가이드 링크: `docs/INSTALL.md#spotbugs-jacoco-설정`
+
+### 4A.4 빌드 설정 미설치 시 가이드 스니펫 출력
+
+Agent 는 리포트 부재 판정 시 아래 스니펫 중 해당 빌드 도구용을 **단 한 번** 보고서 하단에 첨부:
+
+**Maven:**
+```xml
+<!-- pom.xml / plugins -->
+<plugin>
+  <groupId>com.github.spotbugs</groupId>
+  <artifactId>spotbugs-maven-plugin</artifactId>
+  <version>4.8.3.0</version>
+</plugin>
+<plugin>
+  <groupId>org.jacoco</groupId>
+  <artifactId>jacoco-maven-plugin</artifactId>
+  <version>0.8.11</version>
+  <executions>
+    <execution><goals><goal>prepare-agent</goal></goals></execution>
+    <execution><id>report</id><phase>test</phase><goals><goal>report</goal></goals></execution>
+  </executions>
+</plugin>
+```
+
+**Gradle:**
+```gradle
+plugins {
+  id 'com.github.spotbugs' version '6.0.14'
+  id 'jacoco'
+}
+jacocoTestReport { reports { xml.required = true } }
+spotbugsMain { reports { xml.required = true } }
+```
 
 ---
 
