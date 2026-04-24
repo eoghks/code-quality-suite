@@ -4,6 +4,20 @@ Claude Code 용 **자바 코드 리팩토링 + 아키텍처 + 보안 + 품질 + 
 
 ---
 
+## v0.5.0 신규 기능 하이라이트
+
+| 영역 | 기능 | 상세 |
+|---|---|---|
+| 📊 정적 분석 확장 | **PMD / Checkstyle / OWASP Dependency-Check** 리포트 자동 파싱 | priority/severity/CVSS 기반 심각도 매핑 · CVE 9.0+ → BLOCK |
+| 🔐 Secret Scan | **trufflehog / ggshield CLI 연동** | 커밋 이력 전수 Secret 검증, `--only-verified` 로 FP 감소 |
+| 🏗️ Multi-module | **`pom.xml <modules>` / `settings.gradle include` 자동 인식** | `[module][CODE]` 태그 · ARCH-MODULE-01/02 순환·과결합 |
+| 🧭 초기 도입 | **`/init-project` 대화형 마법사** | 4개 프리셋 (startup / mid-team / enterprise / hexagonal) |
+| ⏳ Baseline 만료 | **`/baseline audit` · `/baseline extend`** | `expires_at` 도입 — 영구 기술 부채 은닉 방지 |
+| 🔎 @suppress 감사 | **`/suppress-audit`** | 사유 품질·Stale·작성자별 집계 |
+| 🛡️ Prompt Injection 방어 | **`rules/prompt-safety.md`** | `@suppress ALL` 와일드카드 차단 · 조작 문구·롤 태그 감지 |
+
+---
+
 ## 구성 요소
 
 | 종류 | 이름 | 역할 |
@@ -41,11 +55,31 @@ Claude Code 용 **자바 코드 리팩토링 + 아키텍처 + 보안 + 품질 + 
 
 ## 기본 사용법
 
-### 1. 전체 파이프라인 (3-stage)
+### 1. 최초 도입 — `/init-project` 대화형 마법사 (v0.5.0+)
 
 ```bash
-# Refactor → Security → Quality 전체 실행
+/init-project
+# Q1. 팀 규모? (startup / mid-team / enterprise)
+# Q2. 프로젝트 성숙도? (신규 / 초기 / 운영 / 레거시)
+# Q3. 기술 스택 자동 감지 (Maven/Gradle, Spring, MyBatis/JPA, Flyway)
+# Q4. 엄격도 선택
+# → .claude/quality-config.yml + .quality-baseline.json 자동 생성
+
+# 프리셋 즉시 적용 (비대화)
+/init-project --preset enterprise
+```
+
+### 2. 전체 파이프라인
+
+```bash
+# 3-stage (기본): Refactor → Security → Quality
 /run-pipeline
+
+# 4-stage (--full): Refactor → Architecture → Security → Quality
+/run-pipeline --full
+
+# --with-tests: Refactor → Test Generation → Security → Quality
+/run-pipeline --with-tests
 
 # 특정 파일 지정
 /run-pipeline src/main/java/com/example/UserService.java
@@ -54,18 +88,16 @@ Claude Code 용 **자바 코드 리팩토링 + 아키텍처 + 보안 + 품질 + 
 /run-pipeline --strict
 ```
 
-### 2. 개별 호출
+### 3. 개별 Agent 호출
 
 ```bash
 # 보안 스캔만
 /security-scan
 /security-scan src/main/java/com/example/AdminController.java
 
-# 리팩토링만
-/agent code-refactoring-agent UserService.java
-
-# 품질 검증만
-/agent code-quality-agent
+# 아키텍처 검증만 (레이어·@Transactional·Spring Security)
+/architecture-review
+/architecture-review --full
 
 # 테스트 스켈레톤 자동 생성
 /generate-tests
@@ -77,18 +109,28 @@ Claude Code 용 **자바 코드 리팩토링 + 아키텍처 + 보안 + 품질 + 
 /db-check --all
 ```
 
-### 5. YAML 임계값 설정
+### 4. Baseline 관리 (v0.5.0+ 만료 정책 포함)
 
-```yaml
-# <project>/.claude/quality-config.yml
-refactor:
-  method.max-lines: 60   # 기본 50
-  cc.threshold: 12       # 기본 10
-quality:
-  jacoco.threshold: 70   # 기본 80
+```bash
+# 최초 등록 (레거시 프로젝트 도입 시)
+/baseline create
+git add .quality-baseline.json
+git commit -m "chore: 초기 품질 baseline 등록"
+
+# 만료 상태 감사 — Stale / 만료 임박 / 만료됨 분류
+/baseline audit
+
+# 해결된 항목 자동 정리
+/baseline update
+
+# 현황 조회
+/baseline show
+
+# 만료 연장 (사유 필수)
+/baseline extend a3f8c2d1 --days 90 --reason "Q1 2027 레거시 마이그레이션 완료 시 일괄 해결"
 ```
 
-### 6. @suppress 인라인 억제
+### 5. @suppress 인라인 억제 + 감사
 
 ```java
 // @suppress REF-CC — 레거시 분기 로직, 리팩토링 일정 2026-Q3
@@ -100,28 +142,37 @@ public String processLegacy(String type) { ... }
 <select id="findAllSorted">SELECT * FROM user ORDER BY ${sortColumn}</select>
 ```
 
-### 3. 레거시 프로젝트 — Baseline 도입
-
 ```bash
-# 1. 기존 위반 전체를 baseline 으로 등록
-/baseline create
-
-# 2. .quality-baseline.json 커밋
-git add .quality-baseline.json
-git commit -m "chore: 초기 품질 baseline 등록"
-
-# 3. 이후 신규 위반만 차단
-/run-pipeline   # baseline 자동 적용
+# @suppress 남용 방지 — 프로젝트 전체 감사 (v0.5.0+)
+/suppress-audit
+/suppress-audit --stale-days 180
+# → .suppress-audit-report.md: 코드별/파일별/작성자별 집계 + 사유 품질 검사
 ```
 
-### 4. 커밋 직전 자동 파이프라인 (Hook)
+### 6. YAML 임계값 설정
+
+```yaml
+# <project>/.claude/quality-config.yml
+refactor:
+  method.max-lines: 60   # 기본 50
+  cc.threshold: 12       # 기본 10
+quality:
+  jacoco.threshold: 70   # 기본 80
+architecture:
+  layer.strict: true
+  pkg.allowed-extra: ["adapter", "port"]
+```
+
+자세한 설정: [CONFIG.md](CONFIG.md)
+
+### 7. 커밋 직전 자동 파이프라인 (Hook)
 
 ```
 사용자: UserService 변경사항 커밋해줘
 
 → Claude 가 git commit 실행 시도
 → Hook 발화 (Bash(git commit:*) 매치)
-→ .security-report.md / .quality-report.md BLOCK 마커 확인
+→ .migration-report / .architecture-report / .security-report / .quality-report BLOCK 마커 확인
 → BLOCK 있으면 exit 2 → 커밋 자동 중단
 → BLOCK 없으면 3-stage 파이프라인 권고 힌트 주입
 ```
@@ -208,13 +259,35 @@ vi <project>/.claude/rules/security-rules.md  # 추가 Secret 키워드 등
 
 ## 지원 스택
 
+### 언어·프레임워크
 - **Java** 17+
 - **Jakarta EE** (`jakarta.*`, `javax.*` 금지)
 - **Spring Boot** + **Spring Security**
 - **MyBatis** (Controller → Service → Dao) / **JPA** (Controller → Service → Repository)
 - **Lombok** 핵심 어노테이션 (`@Getter` / `@Setter` / `@Slf4j`, `@Data` 금지)
-- **빌드 도구** Maven / Gradle 자동 감지
-- **SpotBugs** / **JaCoCo** 리포트 파싱 (선택적 통합)
+
+### 빌드·프로젝트 구조
+- **Maven** / **Gradle** 자동 감지 (build.gradle.kts 포함)
+- **Multi-module** 지원 (v0.5.0+) — `pom.xml <modules>`, `settings.gradle include` 자동 파싱 + `**/target/**` Glob 탐색
+
+### 정적 분석 툴 (리포트 자동 파싱)
+| 툴 | 용도 | 통합 버전 |
+|---|---|---|
+| **SpotBugs** | 버그 패턴 | v0.2.0 |
+| **JaCoCo** | 테스트 커버리지 | v0.2.0 |
+| **PMD** | 코드 스타일·복잡도·중복 | v0.5.0 |
+| **Checkstyle** | Google/Sun Java Style | v0.5.0 |
+| **OWASP Dependency-Check** | CVE DB 기반 CVE 스캔 | v0.5.0 |
+
+### DB 마이그레이션
+- **Flyway** (`V*__*.sql` · `U*__*.sql`) / **Liquibase** (XML · YAML) — v0.4.0+
+
+### Secret Scan CLI (선택적 연동, v0.5.0+)
+- **trufflehog** (우선) — 커밋 이력 전체 Secret 검증
+- **ggshield** (백업) — GitGuardian CLI
+
+### LLM 안전장치 (v0.5.0+)
+- Prompt Injection 방어 (`rules/prompt-safety.md`) — `@suppress ALL` 와일드카드 차단, "ignore all previous instructions" 같은 조작 문구 감지, 롤 태그 주입 차단
 
 ---
 
