@@ -2,14 +2,15 @@
 #
 # pre-commit-pipeline.sh
 #
-# PreToolUse Hook for `Bash(git commit:*)` — code-quality-suite plugin v0.3.0
+# PreToolUse Hook for `Bash(git commit:*)` — code-quality-suite plugin v0.4.0
 #
 # 목적:
 #   1. 스테이징된 변경 파일 중 화이트리스트 확장자가 있으면
 #      "Refactor → Security → Quality 3-stage 파이프라인" 힌트를 컨텍스트에 주입
-#   2. Architecture 보고서(.architecture-report.md)에 [BLOCK: ARCH STOP] 마커 → exit 2
-#   3. Security 보고서(.security-report.md)에 [BLOCK: SECURITY STOP] 마커 → exit 2
-#   4. Quality 보고서(.quality-report.md)에 [BLOCK: COMMIT STOP] 마커 → exit 2
+#   2. Migration 보고서(.migration-report.md)에 [BLOCK: MIGRATION STOP] 마커 → exit 2
+#   3. Architecture 보고서(.architecture-report.md)에 [BLOCK: ARCH STOP] 마커 → exit 2
+#   4. Security 보고서(.security-report.md)에 [BLOCK: SECURITY STOP] 마커 → exit 2
+#   5. Quality 보고서(.quality-report.md)에 [BLOCK: COMMIT STOP] 마커 → exit 2
 #
 # 동작 원칙:
 #   - Subagent 를 직접 호출하지 않음 (Hook 제약상 불가)
@@ -17,16 +18,32 @@
 #   - exit 0 = 진행, exit 2 = 커밋 중단 신호 (Claude 가 git commit 취소)
 #   - 보고서 파일 미존재 시 BLOCK 체크 건너뜀 (최초 커밋·Agent 미실행 허용)
 #
-# v0.3.0 변경점:
-#   - Architecture 보고서(.architecture-report.md) BLOCK 마커 체크 추가
-#   - 리포트 파일 부재 시 엣지케이스 명시적 처리 (if -f 가드)
+# v0.4.0 변경점:
+#   - Migration 보고서(.migration-report.md) BLOCK 마커 체크 추가 (1번 섹션)
+#   - 섹션 번호 재정렬 (Migration → Architecture → Security → Quality)
 
 set -u
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
 
 # -------------------------------------------------------------------
-# 1. Architecture 보고서 BLOCK 마커 확인 (v0.3.0 신규)
+# 1. Migration 보고서 BLOCK 마커 확인 (v0.4.0 신규)
+#    파일 미존재 시 건너뜀 (db-check 를 실행하지 않은 경우)
+# -------------------------------------------------------------------
+MIGRATION_REPORT="${PROJECT_DIR}/.migration-report.md"
+
+if [ -f "$MIGRATION_REPORT" ]; then
+    MIGRATION_LAST=$(tail -n 1 "$MIGRATION_REPORT" | tr -d '[:space:]')
+    if [ "$MIGRATION_LAST" = "[BLOCK:MIGRATIONSTOP]" ]; then
+        echo "[code-quality-suite] ❌ Migration Agent 보고서에 위험 패턴이 있습니다."
+        echo "[code-quality-suite] .migration-report.md 를 확인하고 스크립트 수정 후 재커밋하세요."
+        echo "[code-quality-suite] 재스캔: /db-check"
+        exit 2
+    fi
+fi
+
+# -------------------------------------------------------------------
+# 2. Architecture 보고서 BLOCK 마커 확인 (v0.3.0)
 #    파일 미존재 시 건너뜀 (architecture-review 를 실행하지 않은 경우)
 # -------------------------------------------------------------------
 ARCH_REPORT="${PROJECT_DIR}/.architecture-report.md"
@@ -42,7 +59,7 @@ if [ -f "$ARCH_REPORT" ]; then
 fi
 
 # -------------------------------------------------------------------
-# 2. Security 보고서 BLOCK 마커 확인 (v0.2.0)
+# 3. Security 보고서 BLOCK 마커 확인 (v0.2.0)
 #    파일 미존재 시 건너뜀 (security-scan 을 실행하지 않은 경우)
 # -------------------------------------------------------------------
 SECURITY_REPORT="${PROJECT_DIR}/.security-report.md"
@@ -58,7 +75,7 @@ if [ -f "$SECURITY_REPORT" ]; then
 fi
 
 # -------------------------------------------------------------------
-# 3. Quality 보고서 BLOCK 마커 확인
+# 4. Quality 보고서 BLOCK 마커 확인
 #    파일 미존재 시 건너뜀 (run-pipeline 을 실행하지 않은 경우)
 # -------------------------------------------------------------------
 QUALITY_REPORT="${PROJECT_DIR}/.quality-report.md"
@@ -74,7 +91,7 @@ if [ -f "$QUALITY_REPORT" ]; then
 fi
 
 # -------------------------------------------------------------------
-# 4. 스테이징된 변경 파일 수집 + 화이트리스트 필터
+# 5. 스테이징된 변경 파일 수집 + 화이트리스트 필터
 # -------------------------------------------------------------------
 STAGED=$(git diff --cached --name-only 2>/dev/null || true)
 
@@ -100,7 +117,7 @@ if [ -z "$MATCHED" ]; then
 fi
 
 # -------------------------------------------------------------------
-# 5. 힌트 메시지 컨텍스트 주입 (3-stage 기본 / 4-stage --full)
+# 6. 힌트 메시지 컨텍스트 주입 (3-stage 기본 / 4-stage --full / --with-tests)
 # -------------------------------------------------------------------
 cat <<'EOF'
 [code-quality-suite] 커밋 직전 파이프라인 권고
@@ -111,12 +128,15 @@ cat <<'EOF'
   1. /agent code-refactoring-agent    → 구조 개선 + 테스트 동시 갱신 + 아토믹 커밋
   2. /agent security-audit-agent      → OWASP Top 10 보안 취약점 스캔 → .security-report.md
   3. /agent code-quality-agent        → 규칙·테스트·성능·SpotBugs/JaCoCo 검증 → .quality-report.md
-  4. 세 보고서 모두 PASS 확인 후 커밋
+  4. 모든 보고서 PASS 확인 후 커밋
 
-전체 파이프라인 한 번에:       /run-pipeline
-아키텍처 검증 포함 (4-stage):  /run-pipeline --full
-보안만 빠르게:                 /security-scan
-아키텍처만 빠르게:             /architecture-review
+전체 파이프라인 한 번에:           /run-pipeline
+아키텍처 검증 포함 (4-stage):      /run-pipeline --full
+테스트 생성 포함:                  /run-pipeline --with-tests
+DB 마이그레이션 검증:              /db-check
+보안만 빠르게:                     /security-scan
+아키텍처만 빠르게:                 /architecture-review
+테스트 스켈레톤 생성:              /generate-tests
 EOF
 
 echo ""

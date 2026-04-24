@@ -4,6 +4,79 @@
 
 ---
 
+## [0.4.0] - 2026-04-24
+
+**Test · DB Migration · Suppression · DX Release.** 테스트 생성 자동화, DB 마이그레이션 안전성, @suppress 인라인 억제, @Transactional·Spring Security 아키텍처 규칙, YAML 임계값 설정 추가.
+
+### Added — Agent
+
+- `test-generation-agent` — 신규/변경 public 메서드에 JUnit 5 + Mockito 스켈레톤 자동 생성
+  - Given/When/Then + `@DisplayName` 자동 작성
+  - 정상/예외 경로 분리, `@InjectMocks` + `@Mock` 의존성 자동 처리
+  - `mvn test` / `./gradlew test` 자동 실행 + 실패 시 최대 2회 수정
+  - 2회 실패 후 `@Disabled` 처리 + TODO 주석으로 수동 완성 안내
+  - 브랜치 규칙: main/master 이면 `test/<클래스명-lower>` 브랜치 생성 후 커밋
+
+- `db-migration-agent` — Flyway/Liquibase 마이그레이션 스크립트 정적 분석 (읽기 전용)
+  - MIG-DROP: `DROP TABLE` / `TRUNCATE` → Critical
+  - MIG-ALTER-NULL: `NOT NULL ADD COLUMN` without DEFAULT → High
+  - MIG-ALTER-DEF: `ADD COLUMN` without DEFAULT → High
+  - MIG-INDEX: `ADD INDEX` (Lock 경고) → Medium
+  - MIG-NO-UNDO: Flyway undo 스크립트 부재 → Low
+  - MIG-VERSION: 버전 번호 불연속 → High (BLOCK)
+  - MIG-ENCODING: 인코딩 선언 누락 → Low
+  - `.migration-report.md` → `[BLOCK: MIGRATION STOP]` / `[PASS: MIGRATION OK]`
+
+### Added — Rules
+
+- `rules/suppress-policy.md` — @suppress 인라인 억제 주석 정책
+  - 문법: `// @suppress <코드> — <사유>` (직전 1~2 라인)
+  - 사유 없음: [SUPPRESS-NO-REASON] Medium 경고
+  - 잘못된 코드: 억제 무시 + [SUPPRESS-INVALID-CODE] Low
+  - `--strict` 모드: 모든 @suppress 무시
+  - 지원 코드: REF-*, SEC-*, ARCH-*, MIG-* 전체
+
+- `rules/migration-rules.md` — DB 마이그레이션 검증 규칙 (db-migration-agent 참조)
+
+- `rules/architecture-rules.md` §9 @Transactional 위치 검증
+  - ARCH-TX-01: Controller @Transactional → Medium
+  - ARCH-TX-02: Controller @Transactional(readOnly=true) → Medium
+
+- `rules/architecture-rules.md` §10 Spring Security 설정 검증
+  - ARCH-SEC-01: SecurityFilterChain anyRequest() 누락 → High
+  - ARCH-SEC-02: permitAll() 과다 적용 (5개+) → Medium
+  - ARCH-SEC-03: httpBasic() 활성화 → Medium
+
+### Added — Commands
+
+- `/generate-tests [대상] [--dry-run] [--no-run]` — test-generation-agent 단독 호출
+- `/db-check [대상] [--strict] [--version-only]` — db-migration-agent 단독 호출
+
+### Added — Config
+
+- `docs/CONFIG.md` — `.claude/quality-config.yml` 스키마 + 사용 예시 (스타트업 / 엔터프라이즈 / Hexagonal)
+
+### Added — Test
+
+- `test/scenarios/BadMigration.sql` — DROP·NOT NULL without DEFAULT·버전 불연속 위반 포함 (db-migration-agent 검증용)
+
+### Changed — Agent
+
+- `security-audit-agent` — @suppress 인라인 억제 로직 추가
+- `architecture-review-agent` — @suppress 인라인 억제 로직 추가
+- `code-quality-agent` — @suppress 인라인 억제 로직 추가 + YAML config 로드 (§1.1)
+
+### Changed — Pipeline
+
+- `/run-pipeline` — `--with-tests` 옵션 추가 (Refactor → Test Generation → Security → Quality 4-stage)
+- `hooks/pre-commit-pipeline.sh` — `.migration-report.md` BLOCK 마커 체크 추가 (v0.4.0, 1번 섹션), 힌트 메시지에 `/db-check` · `/generate-tests` 추가
+
+### Changed — Plugin 메타
+
+- `plugin.json` / `marketplace.json` — v0.4.0, 6 Agent + 6 Command, suppress·junit5·flyway 키워드 추가
+
+---
+
 ## [0.3.0] - 2026-04-24
 
 **Defensive Design + Architecture Release.** v0.2.0 안정화 + Immutability/Guard clause 규칙 추가 + architecture-review-agent 신설 + security-rules 카테고리 분리.

@@ -1,7 +1,7 @@
 {
   "name": "code-quality-suite",
-  "version": "0.3.0",
-  "description": "Java/Spring Boot 코드 리팩토링 + 아키텍처 + 보안 + 품질 검증 전문 Agent Plugin — Refactor·Architecture·Security·Quality 4-stage 파이프라인, OWASP Top 10, 레이어 의존·DDD 경계 검증, SpotBugs/JaCoCo 통합, Baseline 시스템, git commit Hook 연동",
+  "version": "0.4.0",
+  "description": "Java/Spring Boot 코드 품질 통합 Agent Plugin — Refactor·Architecture·Security·Quality·TestGen·DBMigration 6 Agent, @suppress 인라인 억제, YAML 임계값 설정, OWASP Top 10, Flyway/Liquibase 안전성 검증, JUnit 5 스켈레톤 자동 생성, git commit Hook 연동",
   "author": {
     "name": "daehwan"
   },
@@ -29,7 +29,14 @@
     "static-analysis",
     "architecture",
     "ddd",
-    "immutability"
+    "immutability",
+    "junit5",
+    "mockito",
+    "test-generation",
+    "flyway",
+    "liquibase",
+    "db-migration",
+    "suppress"
   ],
   "compatibility": {
     "claude-code": ">=1.0.0"
@@ -41,6 +48,7 @@
     "changelog": "./docs/CHANGELOG.md",
     "baseline": "./docs/BASELINE.md",
     "scenarios": "./docs/SCENARIOS.md",
-    "roadmap": "./docs/ROADMAP.md"
+    "roadmap": "./docs/ROADMAP.md",
+    "config": "./docs/CONFIG.md"
   }
 }

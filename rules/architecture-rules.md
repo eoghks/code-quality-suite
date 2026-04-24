@@ -204,7 +204,125 @@ Spring Boot 표준 레이어 패키지명:
 
 ---
 
-## 8. 보고서 형식
+## 9. @Transactional 위치 검증
+
+### 9.1 규칙 목적
+
+`@Transactional` 은 Service 레이어의 책임이다. Controller 에 선언 시 트랜잭션 경계가 불명확해지고
+레이어 책임 원칙이 깨진다.
+
+### 9.2 위반 패턴
+
+#### ARCH-TX-01 — Controller @Transactional [Medium]
+
+```java
+// ❌ Medium — ARCH-TX-01: Controller 에 @Transactional
+@RestController
+public class OrderController {
+    @Transactional          // ← Controller 메서드에 선언
+    @PostMapping("/orders")
+    public ResponseEntity<Void> createOrder(...) { ... }
+}
+
+// ❌ Medium — ARCH-TX-01: Controller 클래스 레벨 @Transactional
+@Transactional
+@RestController
+public class UserController { ... }
+```
+
+**감지 기준:** `@Controller` 또는 `@RestController` 어노테이션이 있는 클래스(또는 해당 클래스 메서드)에
+`@Transactional` 선언.
+
+```java
+// ✅ 올바른 위치 — Service 에 선언
+@Service
+public class OrderService {
+    @Transactional
+    public void createOrder(...) { ... }
+}
+```
+
+#### ARCH-TX-02 — Controller @Transactional(readOnly=true) [Medium]
+
+```java
+// ❌ Medium — ARCH-TX-02: readOnly 도 Controller 책임 아님
+@RestController
+public class ProductController {
+    @Transactional(readOnly = true)
+    @GetMapping("/products/{id}")
+    public ResponseEntity<ProductDto> getProduct(...) { ... }
+}
+```
+
+**감지 기준:** `@Controller`/`@RestController` 에 `@Transactional(readOnly = true)` 선언.
+
+---
+
+## 10. Spring Security 설정 검증
+
+### 10.1 규칙 목적
+
+`SecurityFilterChain` 에서 명시적 `anyRequest()` 종결 선언 없이 선택적 `permitAll()` 만 나열하면
+미처리 경로가 기본 허용될 위험이 있다.
+
+### 10.2 위반 패턴
+
+#### ARCH-SEC-01 — anyRequest() 종결 선언 누락 [High]
+
+```java
+// ❌ High — ARCH-SEC-01: anyRequest() 종결 선언 없음
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/public/**").permitAll()
+            .requestMatchers("/api/login").permitAll()
+            // ❌ anyRequest().authenticated() 또는 anyRequest().denyAll() 없음
+        );
+    return http.build();
+}
+
+// ✅ 종결 선언 있음
+http.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/public/**").permitAll()
+    .anyRequest().authenticated()   // ← 필수
+);
+```
+
+**감지 기준:** `SecurityFilterChain` 빈 메서드에서 `anyRequest()` 호출 부재.
+
+#### ARCH-SEC-02 — permitAll() 과다 적용 [Medium]
+
+```java
+// ❌ Medium — ARCH-SEC-02: 비-공개 경로에 permitAll 5개 이상
+http.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/users/**").permitAll()    // 1
+    .requestMatchers("/api/orders/**").permitAll()   // 2
+    .requestMatchers("/api/payments/**").permitAll() // 3
+    .requestMatchers("/api/admin/**").permitAll()    // 4 — 관리자 경로!
+    .requestMatchers("/api/reports/**").permitAll()  // 5
+    .anyRequest().authenticated()
+);
+```
+
+**감지 기준:** `permitAll()` 호출이 5개 이상이며 `/public/`, `/static/`, `/actuator/health`,
+`/swagger-ui` 등 명백한 공개 경로가 아닌 패턴 포함.
+
+#### ARCH-SEC-03 — httpBasic() 활성화 [Medium]
+
+```java
+// ❌ Medium — ARCH-SEC-03: 프로덕션 코드에 httpBasic 활성화
+http.httpBasic(Customizer.withDefaults());
+// 또는
+http.httpBasic();
+```
+
+**감지 기준:** `SecurityFilterChain` 빈에서 `httpBasic()` 호출.
+**예외:** `@Profile("dev")` / `@Profile("local")` 어노테이션이 동일 클래스에 있으면 Low 완화.
+
+---
+
+## 11. 보고서 형식
 
 ```
 ## Architecture Report — feature/order-refactor

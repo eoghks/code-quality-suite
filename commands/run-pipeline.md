@@ -1,12 +1,13 @@
 ---
-description: Refactor → Security → Quality 3-stage 파이프라인 수동 실행. --full 로 Architecture 검증 추가, --strict 로 Baseline 무시 전수 검사 가능.
-argument-hint: "[파일경로 | 브랜치명 | --full] [--strict]"
+description: Refactor → Security → Quality 3-stage 파이프라인 수동 실행. --full 로 Architecture 검증 추가, --with-tests 로 Test Generation 삽입, --strict 로 Baseline 무시 전수 검사 가능.
+argument-hint: "[파일경로 | 브랜치명 | --full | --with-tests] [--strict]"
 ---
 
 # /run-pipeline
 
 **역할:** `code-refactoring-agent` → `security-audit-agent` → `code-quality-agent` 를 순차 실행합니다.
 `--full` 플래그 추가 시 `architecture-review-agent` 가 2번째 Stage 로 삽입됩니다.
+`--with-tests` 플래그 추가 시 `test-generation-agent` 가 Refactor 이후 Stage 로 삽입됩니다.
 
 ---
 
@@ -18,6 +19,7 @@ argument-hint: "[파일경로 | 브랜치명 | --full] [--strict]"
 | `src/main/java/Foo.java` | 지정 파일만 대상 |
 | `feature/user-login` | 해당 브랜치의 main 대비 diff |
 | `--full` | Architecture Agent 삽입 (4-stage). PR 전·대규모 리팩토링 후 권장 |
+| `--with-tests` | Test Generation Agent 삽입 (Refactor 직후). 신규 메서드 테스트 자동 생성 |
 | `--strict` | Baseline 무시 + 전체 `src/main/**` 전수 검사 |
 
 ---
@@ -127,9 +129,60 @@ Stage 4: code-quality-agent        (품질 검증)
 
 ---
 
+## 실행 절차 — `--with-tests` 옵션 (테스트 생성 포함)
+
+`--with-tests` 인자 감지 시 Refactor 이후 Test Generation Agent 를 삽입한다.
+
+```
+Stage 1: code-refactoring-agent      (리팩토링)
+Stage 2: test-generation-agent       (테스트 스켈레톤 생성) ← --with-tests 전용
+Stage 3: security-audit-agent        (보안 검증)
+Stage 4: code-quality-agent          (품질 검증)
+```
+
+### Test Generation Agent 호출
+
+```
+/agent test-generation-agent <대상 범위>
+```
+
+결과: 신규·변경 `public` 메서드에 대해 JUnit 5 + Mockito 스켈레톤 생성 → `mvn test` / `./gradlew test` 실행 → 테스트 파일 커밋.
+
+**테스트 생성 실패(2회) 시 `@Disabled` 처리 후 계속 진행.** 파이프라인 중단 없음.
+
+### `--with-tests` 결과 요약
+
+```
+## Pipeline Complete — <대상> [WITH-TESTS MODE]
+
+### Stage 1: Refactor
+- 변경 파일: N개 · 커밋: M건
+
+### Stage 2: Test Generation
+- 대상 메서드: N개 · 스켈레톤 생성: M개 · @Disabled: K개
+- 테스트 실행: 통과 X건 / 실패 0건
+
+### Stage 3: Security
+- Critical: A건 · High: B건
+- 상태: [PASS: SECURITY OK] | [BLOCK: SECURITY STOP]
+
+### Stage 4: Quality
+- Critical: A건 · High: B건 · SpotBugs: G건 · JaCoCo: H%
+- 상태: [PASS: COMMIT READY] | [BLOCK: COMMIT STOP]
+
+### 최종 판정
+- ✅ PASS → git commit 진행 가능
+- ❌ BLOCK → 해당 보고서 확인 후 재실행
+```
+
+---
+
 ## 주의
 
-- 기본 `/run-pipeline` 은 3-stage (Architecture 미포함). PR 전·대규모 변경 후엔 `--full` 권장.
+- 기본 `/run-pipeline` 은 3-stage (Architecture·Test Generation 미포함).
+- PR 전·대규모 리팩토링 후엔 `--full` 권장.
+- 신규 public 메서드가 많을 때 `--with-tests` 권장.
+- `--full` + `--with-tests` 조합 가능 (5-stage).
 - Hook 은 **힌트만** 주입. 실제 Agent 호출은 이 커맨드가 담당.
 - BLOCK 발생 시 해당 단계 이후 중단. 보고서 확인 후 재실행.
 - `--strict` 사용 시 레거시 전체 스캔 → 다수 위반 예상. 처음엔 `/baseline create` 선행 권장.
