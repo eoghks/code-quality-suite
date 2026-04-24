@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  [시나리오 테스트] code-quality-agent PMD 리포트 파싱 검증 대상 (v0.5.0)
+
+  의도적으로 PMD 위반을 포함한 fake 리포트. code-quality-agent 가
+  이 파일을 파싱해 아래 위반이 정확히 심각도별로 분류되어야 한다:
+
+   - priority 1 → Critical (GodClass)
+   - priority 2 → High (CyclomaticComplexity)
+   - priority 3 → Medium (UnusedPrivateMethod)
+   - priority 4 → Low (LongVariable)
+
+  실제 프로젝트에서는 pmd-maven-plugin 이 target/pmd.xml 에 자동 생성한다.
+-->
+<pmd version="7.0.0" timestamp="2026-04-24T14:00:00.000">
+    <file name="src/main/java/com/example/legacy/OrderProcessor.java">
+        <violation beginline="1" endline="400"
+                   begincolumn="1" endcolumn="1"
+                   rule="GodClass"
+                   ruleset="Design"
+                   priority="1">
+            Possible God Class (WMC=89, ATFD=12, TCC=0.103)
+        </violation>
+        <violation beginline="42" endline="120"
+                   begincolumn="5" endcolumn="5"
+                   rule="CyclomaticComplexity"
+                   ruleset="Design"
+                   priority="2">
+            The method 'processOrder' has a Cyclomatic Complexity of 14.
+        </violation>
+        <violation beginline="155" endline="165"
+                   begincolumn="5" endcolumn="5"
+                   rule="UnusedPrivateMethod"
+                   ruleset="Best Practices"
+                   priority="3">
+            Avoid unused private methods such as 'calculateLegacyTax()'.
+        </violation>
+        <violation beginline="203" endline="203"
+                   begincolumn="9" endcolumn="50"
+                   rule="LongVariable"
+                   ruleset="Code Style"
+                   priority="4">
+            Avoid excessively long variable names like 'previouslyProcessedOrderIdentifierList'.
+        </violation>
+    </file>
+
+    <file name="src/main/java/com/example/legacy/UserMapper.java">
+        <violation beginline="78" endline="95"
+                   begincolumn="5" endcolumn="5"
+                   rule="AvoidDuplicateLiterals"
+                   ruleset="Error Prone"
+                   priority="3">
+            The String literal "ACTIVE" appears 5 times in this file.
+        </violation>
+    </file>
+</pmd>

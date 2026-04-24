@@ -1,7 +1,7 @@
 {
   "name": "code-quality-suite",
-  "version": "0.4.0",
-  "description": "Java/Spring Boot 코드 리팩토링 + 아키텍처 + 보안 + 품질 + 테스트 생성 + DB 마이그레이션 검증 전문 Agent 번들. 6 Agent + 6 Command + @suppress 인라인 억제 + YAML 임계값 설정",
+  "version": "0.5.0",
+  "description": "Java/Spring Boot 코드 품질 통합 Agent 번들. 6 Agent + 8 Command · Refactor·Architecture·Security·Quality·TestGen·DBMigration · PMD/Checkstyle/OWASP-DC · trufflehog Secret Scan · Multi-module · Prompt Injection 방어 · Baseline 만료 정책 · @suppress 감사 · /init-project 마법사",
   "author": {
     "name": "daehwan"
   },
@@ -34,7 +34,16 @@
     "flyway",
     "liquibase",
     "db-migration",
-    "suppress"
+    "suppress",
+    "pmd",
+    "checkstyle",
+    "dependency-check",
+    "cve",
+    "trufflehog",
+    "ggshield",
+    "multi-module",
+    "prompt-injection",
+    "prompt-safety"
   ],
   "agents": [
     "./agents/code-refactoring-agent.md",
@@ -51,6 +60,8 @@
     "./commands/security-scan.md",
     "./commands/baseline.md",
     "./commands/generate-tests.md",
-    "./commands/db-check.md"
+    "./commands/db-check.md",
+    "./commands/init-project.md",
+    "./commands/suppress-audit.md"
   ]
 }
