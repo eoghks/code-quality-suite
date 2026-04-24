@@ -58,9 +58,9 @@
 
 ---
 
-## v0.4.0 — 테스트 · DB 마이그레이션 Agent
+## v0.4.0 — 테스트 · DB 마이그레이션 · 규칙 DX 개선
 
-**목표:** 테스트 생산성과 DB 변경 안전성 확보.
+**목표:** 테스트 생산성, DB 변경 안전성, 규칙 커스터마이징 편의성 확보.
 
 ### 신규 Agent: `test-generation-agent`
 
@@ -80,16 +80,37 @@
   - 롤백 스크립트(`undo`) 부재 — **Low**
 - 버전 번호 연속성 검증 (V1 → V2 → V3 순서 누락 감지)
 
-### JaCoCo 임계값 커스터마이징
+### 인라인 억제 주석 (`@suppress`)
 
-- 프로젝트 오버라이드로 커버리지 목표 팀별 설정 가능
-- `<project>/.claude/rules/quality-rules.md` 에 `coverage.threshold: 70` 형태로 지정
+- Baseline JSON 없이 코드 라인에 직접 억제 사유 명시
+  ```xml
+  <!-- @suppress SQL-INJ — sortColumn Enum 화이트리스트 검증 완료 -->
+  SELECT * FROM user ORDER BY ${sortColumn}
+  ```
+- 억제 주석 없는 위반은 기존대로 차단
+- 남용 방지: `@suppress` 사유 텍스트 필수 (사유 없으면 경고)
+
+### 아키텍처 규칙 확장
+
+- **`@Transactional` 위치 검증** — Controller 에 `@Transactional` 선언 시 **Medium** (Service 책임 위반)
+- **Spring Security 설정 강화** — `SecurityFilterChain` 에서 `anyRequest().authenticated()` 누락, `permitAll()` 과다 적용 감지
+
+### 규칙 YAML 설정 파일
+
+- `.claude/quality-config.yml` 한 파일로 주요 임계값 변경 — `.md` 오버라이드보다 진입 장벽 낮춤
+  ```yaml
+  method.max-lines: 60
+  cc.threshold: 12
+  jacoco.threshold: 70
+  params.max: 4
+  ```
+- JaCoCo 임계값 커스터마이징 통합 (기존 `coverage.threshold` 방식 대체)
 
 ---
 
-## v0.5.0 — 외부 툴 확장
+## v0.5.0 — 외부 툴 확장 · 멀티 모듈 지원
 
-**목표:** 정적 분석 커버리지 확대.
+**목표:** 정적 분석 커버리지 확대 + 실무 프로젝트 구조 완전 지원.
 
 ### 추가 정적 분석 툴 통합
 
@@ -104,6 +125,13 @@
 - **trufflehog** / **ggshield** CLI 래퍼 — 커밋 이력 전체에서 Secret 감지
 - `.security-report.md` 에 통합 보고
 - CI/CD 연동 권고 (pre-push hook)
+
+### Multi-module Maven/Gradle 지원
+
+- 현재 단일 모듈 가정 → 멀티 모듈 프로젝트 대응
+- 모듈별 SpotBugs/JaCoCo 리포트 자동 탐색 (`**/target/spotbugsXml.xml`, `**/build/reports/jacoco/**`)
+- 모듈 간 의존 방향 검증 (`architecture-review-agent` 확장)
+- `pom.xml` 계층 구조 파악 (parent → child 모듈 관계 인식)
 
 ---
 
@@ -120,6 +148,12 @@
 - `.github/workflows/code-quality.yml` 자동 생성
 - SpotBugs + JaCoCo + OWASP Dependency-Check 포함
 - PR 시 자동 파이프라인 실행
+
+### GitLab CI/CD 템플릿 자동 생성
+
+- `.gitlab-ci.yml` 자동 생성 (GitHub Actions 와 동일 커버리지)
+- GitLab Merge Request 파이프라인 연동
+- GitLab Code Quality 리포트 포맷 출력 (`gl-code-quality-report.json`)
 
 ### PR 자동 코멘트 봇
 
@@ -177,6 +211,12 @@
 
 - `.quality-report.json` → IDEA Inspection 패널에 자동 표시
 - 파일·라인 이동 지원
+
+### WebFlux / Reactive 지원
+
+- `.kt` / Reactor 패턴 규칙 추가 (`Mono`·`Flux` 반환, `WebFilter`, `RouterFunction`)
+- `@RestController` + `Mono/Flux` 반환 시 blocking 호출 감지
+- `WebClient` 체인 패턴 규칙 (subscribe 없는 cold stream 경고)
 
 ### 장기 안정화
 
