@@ -11,6 +11,7 @@
 |---|---|---|
 | **v0.1.0** | ✅ 릴리즈 | MVP — Refactor + Quality 2-stage, Hook, Rules 3단 오버라이드 |
 | **v0.2.0** | ✅ 릴리즈 | Hardening — OWASP Security Agent, SpotBugs/JaCoCo, Baseline, 3-stage 파이프라인 |
+| **v0.3.0** | ✅ 릴리즈 | Defensive Design — Immutability/Guard Clause, architecture-review-agent, security-rules 분리, 시나리오 테스트 |
 
 ---
 

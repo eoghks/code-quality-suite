@@ -1,7 +1,7 @@
 {
   "name": "code-quality-suite",
-  "version": "0.2.0",
-  "description": "Java/Spring Boot 코드 리팩토링 + 보안 + 품질 검증 전문 Agent Plugin — Refactor·Security·Quality 3-stage 파이프라인, OWASP Top 10, SpotBugs/JaCoCo 통합, Baseline 시스템, git commit Hook 연동",
+  "version": "0.3.0",
+  "description": "Java/Spring Boot 코드 리팩토링 + 아키텍처 + 보안 + 품질 검증 전문 Agent Plugin — Refactor·Architecture·Security·Quality 4-stage 파이프라인, OWASP Top 10, 레이어 의존·DDD 경계 검증, SpotBugs/JaCoCo 통합, Baseline 시스템, git commit Hook 연동",
   "author": {
     "name": "daehwan"
   },
@@ -26,7 +26,10 @@
     "sql-injection",
     "mybatis",
     "jpa",
-    "static-analysis"
+    "static-analysis",
+    "architecture",
+    "ddd",
+    "immutability"
   ],
   "compatibility": {
     "claude-code": ">=1.0.0"
@@ -36,6 +39,8 @@
     "install": "./docs/INSTALL.md",
     "customization": "./docs/CUSTOMIZATION.md",
     "changelog": "./docs/CHANGELOG.md",
-    "baseline": "./docs/BASELINE.md"
+    "baseline": "./docs/BASELINE.md",
+    "scenarios": "./docs/SCENARIOS.md",
+    "roadmap": "./docs/ROADMAP.md"
   }
 }

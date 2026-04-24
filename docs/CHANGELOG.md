@@ -4,6 +4,50 @@
 
 ---
 
+## [0.3.0] - 2026-04-24
+
+**Defensive Design + Architecture Release.** v0.2.0 안정화 + Immutability/Guard clause 규칙 추가 + architecture-review-agent 신설 + security-rules 카테고리 분리.
+
+### Added — Agent
+
+- `architecture-review-agent` — 패키지 의존 방향·레이어 분리·DDD 경계 정적 검증 (읽기 전용)
+  - ARCH-LAYER: Controller→Repository 직접 import, Service→Controller import 감지 [High]
+  - ARCH-CYCLE: 패키지 간 순환 의존 감지 [High]
+  - ARCH-DDD: `@RequestBody Entity` 직접 수신·반환 감지 [High]
+  - ARCH-PKG: 표준 패키지명 위반 [Low]
+  - ARCH-HEX: Hexagonal Architecture 힌트 [Low]
+  - `.architecture-report.md` → `[BLOCK: ARCH STOP]` / `[PASS: ARCH OK]` 마커
+
+### Added — Rules
+
+- `rules/architecture-rules.md` — 아키텍처 검증 전체 기준 (레이어/순환의존/DDD/패키지명/Hexagonal)
+- `rules/refactor-rules.md` §13 Immutability — `final` 강제·`record` 권고·방어적 복사·불변 컬렉션 반환
+- `rules/refactor-rules.md` §14 Guard Clause — 중첩 if 3레벨 초과 경고·else 제거 권고
+- `rules/security/` 카테고리 분리 — injection·crypto·access-control·deserialization·misc (토큰 최적화)
+
+### Added — Commands
+
+- `/architecture-review [target] [--full] [--strict]` — architecture-review-agent 단독 호출
+
+### Added — Test
+
+- `test/scenarios/` — 더미 파일 8개 (Refactor·Security·Architecture Agent 각 위반 감지 검증용)
+- `docs/SCENARIOS.md` — 시나리오 파일별 위반 목록 + 검증 방법 가이드
+
+### Changed
+
+- `/run-pipeline` — `--full` 옵션 추가 (4-stage: Refactor → Architecture → Security → Quality)
+- `hooks/pre-commit-pipeline.sh` — `.architecture-report.md` BLOCK 마커 체크 추가 (v0.3.0)
+- `security-audit-agent` — 변경 파일 유형별 카테고리 선택 로드로 컨텍스트 최적화
+- `plugin.json` / `marketplace.json` — v0.3.0, architecture-review-agent·architecture-review 커맨드 추가
+
+### Fixed (v0.2.0 안정화)
+
+- Hook 엣지케이스 명시화 — 리포트 파일 미존재 시 BLOCK 체크 건너뜀 (최초 커밋 허용) 주석 추가
+- `security-rules.md` 단일 392줄 → 인덱스 + `security/` 5개 카테고리 파일로 분리
+
+---
+
 ## [0.2.0] - 2026-04-21
 
 **Hardening Release.** 리팩토링·보안·품질 규칙 대폭 강화, OWASP 전담 Agent 신설, SpotBugs/JaCoCo 통합, Baseline 시스템 도입.

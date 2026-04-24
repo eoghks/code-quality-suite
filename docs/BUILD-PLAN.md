@@ -268,5 +268,38 @@
 | 8. plugin 매니페스트 | ✅ 완료 | 2026-04-21 |
 | 9. 문서 & 최종 검증 | ✅ 완료 (v0.1.0) | 2026-04-21 |
 | 10. v0.2.0 Hardening Release | ✅ 완료 | 2026-04-21 |
+| 11. v0.3.0 Defensive Design + Architecture | ✅ 완료 | 2026-04-24 |
 
 > **범례:** ✅ 완료 · 🟡 진행 중 · ⏳ 대기
+
+---
+
+## Phase 11: v0.3.0 Defensive Design + Architecture Release ✅
+
+**결정 사항:**
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| architecture-review-agent 파이프라인 포함 여부 | `--full` 옵션 전용 (기본 제외) | 매 커밋 import 전수 분석은 사용성 저하 |
+| Immutability 규칙 | §13 추가 (final·record·방어적 복사·불변 컬렉션) | v0.3.0 로드맵 항목 |
+| Guard Clause 규칙 | §14 추가 (중첩 if 3레벨·else 제거) | v0.3.0 로드맵 항목 |
+| security-rules.md 분리 | 인덱스 + security/ 5개 카테고리 파일 | 토큰 최적화 — 파일 유형별 선택 로드 |
+| 시나리오 테스트 | test/scenarios/ 8개 더미 파일 | v0.2.0 미검증 항목 보완 |
+
+**산출물:**
+- [x] `agents/architecture-review-agent.md` 신설 — 레이어/순환의존/DDD 검증, `.architecture-report.md` 출력
+- [x] `rules/architecture-rules.md` 신설 — ARCH-LAYER/ARCH-CYCLE/ARCH-DDD/ARCH-PKG/ARCH-HEX
+- [x] `rules/refactor-rules.md` — §13(Immutability) · §14(Guard Clause) 추가
+- [x] `rules/security-rules.md` — 인덱스 파일로 축소 재작성
+- [x] `rules/security/injection.md` · `crypto.md` · `access-control.md` · `deserialization.md` · `misc.md` 신설
+- [x] `agents/security-audit-agent.md` — 카테고리 선택 로드 전략 반영
+- [x] `commands/architecture-review.md` 신설 — `/architecture-review [target] [--full] [--strict]`
+- [x] `commands/run-pipeline.md` — `--full` 옵션 추가 (4-stage)
+- [x] `hooks/pre-commit-pipeline.sh` — `.architecture-report.md` BLOCK 마커 체크 추가, v0.3.0
+- [x] `.claude-plugin/plugin.json` · `marketplace.json` — v0.3.0
+- [x] `test/scenarios/` — BadService · GodClass · MutableDto · NestedIfController · VulnerableMapper.xml · InsecureService · LayerViolation · EntityExposed
+- [x] `docs/SCENARIOS.md` 신설 — 시나리오 검증 가이드
+- [x] `docs/CHANGELOG.md` — [0.3.0] 섹션
+- [x] `docs/README.md` — 4 Agent + 4 Command 표 갱신
+- [x] `docs/BUILD-PLAN.md` — Phase 11 추가 (이 항목)
+- [x] `docs/ROADMAP.md` — v0.3.0 ✅ 릴리즈 마킹
