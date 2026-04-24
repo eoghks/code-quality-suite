@@ -13,6 +13,11 @@
 | **v0.2.0** | ✅ 릴리즈 | Hardening — OWASP Security Agent, SpotBugs/JaCoCo, Baseline, 3-stage 파이프라인 |
 | **v0.3.0** | ✅ 릴리즈 | Defensive Design — Immutability/Guard Clause, architecture-review-agent, security-rules 분리, 시나리오 테스트 |
 | **v0.4.0** | ✅ 릴리즈 | Test·DB·Suppression·DX — test-generation-agent, db-migration-agent, @suppress, @Transactional/Security 규칙, YAML config |
+| **v0.5.0** | 📝 계획 | 외부 툴·멀티 모듈·운영 안전망 — PMD/Checkstyle/OWASP-DC, Secret Scan, Multi-module, `/init-project`, Baseline 만료, `/suppress-audit`, Prompt Injection 방어 |
+| **v0.6.0** | 📝 계획 | CI/CD·Agent 협업·교육 — GitHub/GitLab Actions, PR 봇, Pre-push Hook, pipeline-state.json, `/agent-explain`, Large Diff Chunk 분할 |
+| **v0.7.0** | 📝 계획 | 리포트·AI 품질·프론트엔드 — JSON/HTML 리포트, 트렌드, Agent 메트릭, Confidence Score, frontend-rules, Rule Conflict Detection |
+| **v0.8.0** | 📝 계획 | 엔터프라이즈 확장 — 팀별 프로파일, Slack/Jira/Datadog 연동, compliance-audit-agent, `/changelog-gen`, 규칙별 WHY 문서 |
+| **v1.0.0** | 📝 계획 | 프로덕션 릴리스 — i18n, Kotlin/Groovy/Scala, IDEA 플러그인, WebFlux/Reactive, 장기 안정화 |
 
 ---
 
@@ -109,9 +114,9 @@
 
 ---
 
-## v0.5.0 — 외부 툴 확장 · 멀티 모듈 지원
+## v0.5.0 — 외부 툴 확장 · 멀티 모듈 · 운영 안전망
 
-**목표:** 정적 분석 커버리지 확대 + 실무 프로젝트 구조 완전 지원.
+**목표:** 정적 분석 커버리지 확대 + 실무 프로젝트 구조 완전 지원 + 도입 장벽 해소 + @suppress/Baseline 운영 안전망.
 
 ### 추가 정적 분석 툴 통합
 
@@ -134,11 +139,40 @@
 - 모듈 간 의존 방향 검증 (`architecture-review-agent` 확장)
 - `pom.xml` 계층 구조 파악 (parent → child 모듈 관계 인식)
 
+### 초기 도입 마법사 — `/init-project`
+
+- 대화형 Q&A (팀 규모 · 프로젝트 성숙도 · 기술 스택)
+- `.claude/quality-config.yml` 기본값 자동 생성 (스타트업/엔터프라이즈/Hexagonal 프리셋)
+- 레거시 프로젝트면 `/baseline create` 자동 수행
+- 기존 규칙 오버라이드 디렉터리 (`~/.claude/rules/`, `<project>/.claude/rules/`) 스캐폴딩
+
+### Baseline 만료 정책
+
+- `.quality-baseline.json` 각 violation 에 `registered_at` · `expires_at` 필드 추가
+- 만료 임박 (30일 이내) → `.quality-report.md` 에 `[BASELINE-EXPIRING]` 경고
+- 만료 초과 → 정상 위반으로 승격 (BLOCK 재활성화)
+- `/baseline audit` — 전체 baseline 항목의 등록일·만료일·경과일 집계 리포트 + 90일 초과 stale 목록
+
+### @suppress 감사 — `/suppress-audit`
+
+- 프로젝트 전체 `@suppress` 주석 수집 → 코드별/파일별/작성자별 집계
+- 사유 품질 검사 (사유 10자 미만·"임시"·"TODO" 등 불명확 텍스트 → 경고)
+- `.suppress-audit-report.md` 생성
+- PR 정책 힌트: "이번 PR 에서 @suppress N건 추가 — 리뷰어 재확인 권고"
+
+### Prompt Injection 방어 규칙
+
+- `rules/prompt-safety.md` 신설 — 악성 주석 패턴 블랙리스트
+  - `ignore all previous rules`, `disregard instructions`, `act as`, `jailbreak` 등
+  - `@suppress ALL`, `@suppress *` 와 같은 와일드카드 시도 차단
+- 모든 Agent 가 주석 스캔 시 해당 패턴 감지 → `[PROMPT-INJ]` **Medium** 경고 + 원래 규칙 적용 유지
+- 주석 블록 내 "system:", "assistant:" 같은 롤 태그 감지 → Medium
+
 ---
 
-## v0.6.0 — CI/CD 통합
+## v0.6.0 — CI/CD 통합 · Agent 협업 · 교육 기능
 
-**목표:** Claude Code 외부 파이프라인과 연동.
+**목표:** Claude Code 외부 파이프라인 연동 + Agent 간 교차 검증 + 개발자 학습 곡선 단축.
 
 ### GitHub Actions 템플릿 자동 생성
 
@@ -166,11 +200,33 @@
 - `Bash(git push:*)` 매처 추가 → push 직전에도 Security + Quality 검증
 - 로컬 pre-commit 과 다른 레이어에서 이중 안전망
 
+### Agent 협업 — `pipeline-state.json`
+
+- 각 Agent 가 읽고 쓰는 **공유 상태 파일** — 독립 실행 한계 해소
+- 기록 항목: Stage 완료 시각 · 수정 파일 목록 · fingerprint · Agent 권고 충돌 현황
+- Refactor Agent 수정 → Security Agent 가 수정 범위만 재검증 (Round-trip)
+- **Conflict Resolution 정책** — 권고 충돌 시 우선순위: Security(Critical) > Architecture(High) > Refactor(Medium)
+- 파이프라인 종료 시 state 파일 비움 (세션 단위)
+
+### 교육 커맨드 — `/agent-explain <CODE>`
+
+- 특정 위반 코드의 **배경·위험·해결책** 자연어 설명
+- 예: `/agent-explain SQL-INJ` → "SQL Injection 은 … 해결: #{param} 바인딩 사용"
+- 규칙 파일(`rules/*.md`)의 해당 섹션 + 샘플 코드 + 실제 공격 시나리오 출력
+- 주니어 개발자 온보딩 · 코드 리뷰 근거 설명에 활용
+
+### Large Diff Chunk 분할 전략
+
+- 변경 파일 50개 초과 시 Agent 가 자동 chunk 분할
+- chunk 별 부분 보고서 생성 → 최종 merge 후 단일 `.quality-report.md`
+- 토큰 폭증·Context Window 초과 방지
+- `--chunk-size` 옵션으로 수동 조정 가능
+
 ---
 
-## v0.7.0 — 리포트 고도화
+## v0.7.0 — 리포트 고도화 · AI 품질 · 프론트엔드 커버리지
 
-**목표:** 보고서 가독성·분석성 개선.
+**목표:** 보고서 가독성·분석성 + False Positive 완화 + 프론트엔드 규칙 확장.
 
 ### 구조화 출력 (JSON)
 
@@ -192,6 +248,67 @@
 - 토큰 사용량, 실행 시간, 감지 위반 건수를 세션별 기록
 - `/stats` 커맨드로 조회
 
+### AI Confidence Score
+
+- 모든 위반에 `confidence: 0.0 ~ 1.0` 필드 추가
+- 정규식 기반 감지 → 높음(0.9+), 휴리스틱 추론 → 중간(0.7~0.9), 맥락 추론 → 낮음(0.7 미만)
+- **보고서 분리:** 0.7 미만 위반은 `### 검토 권고 (낮은 확신도)` 섹션으로 분리 → False Positive 완화
+- `--min-confidence 0.8` 옵션으로 임계값 조정 가능
+
+### 프론트엔드 규칙 — `rules/frontend-rules.md`
+
+- 현재 `.js` 확장자만 화이트리스트, 실제 규칙 없음 → 프론트엔드 전담 규칙 도입
+- **XSS 방어** — `innerHTML`, `document.write`, `eval`, `new Function()` → High
+- **하드코딩 API 키** — `const API_KEY = "sk-..."` → Critical
+- **React 안티패턴** — `dangerouslySetInnerHTML`, 키 없는 `.map()`, `useEffect` deps 배열 누락 → Medium
+- **Vue 안티패턴** — `v-html`, `mounted` 내 DOM 직접 조작 → Medium
+- **TypeScript** — `any` 과다 사용, `// @ts-ignore` 남발 → Low (통계 기반)
+
+### 규칙 충돌 감지 (Rule Conflict Detection)
+
+- 3단 오버라이드(사용자 > 프로젝트 > Plugin) 에서 규칙끼리 모순 시 경고
+- 예: 사용자가 `method.max-lines: 100`, 프로젝트가 `method.max-lines: 30` → 최종 적용 값 명시 + 출처 로그
+- `/config show` 커맨드 — 현재 활성 config 전체 출처 추적 리포트
+
+---
+
+## v0.8.0 — 엔터프라이즈 확장
+
+**목표:** 팀·조직 단위 운영 기능 + 외부 시스템 연동 + 컴플라이언스.
+
+### 팀별 규칙 프로파일
+
+- `rules/profiles/backend.md`, `frontend.md`, `security.md`, `infra.md` — 프로파일별 규칙 세트
+- `quality-config.yml` 에 `profile: backend` 또는 `profile: [backend, security]` 복수 선택 지원
+- 팀 디렉터리 구조 감지 시 자동 프로파일 적용 (`src/frontend/` → frontend, `src/backend/` → backend)
+
+### 외부 시스템 연동
+
+- **Slack 봇** — Critical 발견 시 채널 알림 (`.claude/integrations/slack.yml` 설정)
+- **Jira 이슈 자동 생성** — BLOCK 발생 시 Jira 티켓 초안 생성 (사용자 승인 후 실제 생성)
+- **Datadog 메트릭 export** — 일일 품질 지표 (`trend.json`) Datadog API 로 전송
+- **Microsoft Teams** — Webhook 기반 알림 (Slack 과 동일 구조)
+
+### Compliance Audit Agent — `compliance-audit-agent`
+
+- **PII 하드코딩 감지** — 주민번호 · 전화번호 · 이메일 · 카드번호 패턴 → Critical
+- **GDPR 데이터 보관 정책** — 개인정보 로깅 · DB 평문 저장 → High
+- **라이선스 검증** — `pom.xml` / `build.gradle` 의존성 라이선스 (GPL 도입 시 High 경고)
+- **데이터 마스킹 규칙** — `logger.info("user: {}", user)` 에서 PII 필드 포함 시 Medium
+- `.compliance-report.md` → `[BLOCK: COMPLIANCE STOP]` 마커
+
+### 문서 자동화 커맨드
+
+- `/changelog-gen` — 최근 N 커밋 → `CHANGELOG.md` 섹션 초안 자동 생성
+- `/release-notes` — 버전 태그 간 변경사항 → Release Notes 작성
+- 커밋 메시지 규약(`feat:`, `fix:`, `docs:`) 기반 자동 분류
+
+### 규칙별 WHY 문서
+
+- `docs/rules-why/` — 규칙 코드별 배경·사례·업계 기준 문서
+- `/agent-explain <CODE>` 가 이 문서를 읽어 답변
+- CVE 참조 · OWASP 링크 · 실제 사고 사례 (Log4Shell, Spring4Shell 등) 포함
+
 ---
 
 ## v1.0.0 — 프로덕션 릴리스
@@ -207,6 +324,12 @@
 
 - `.kt` 파일 화이트리스트 추가
 - Kotlin 관용구 규칙 (null-safety, data class, sealed class, coroutine)
+
+### 추가 JVM 언어 지원
+
+- **Groovy** — `.groovy` 확장자 + Gradle 스크립트 규칙 (Spring 테스트에서 흔함)
+- **Scala** — `.scala` 확장자 + Akka · Play 프레임워크 패턴
+- 각 언어별 최소 기본 규칙 세트 (메서드 길이·null·하드코딩 Secret) 포함
 
 ### IntelliJ IDEA 플러그인 연동
 
