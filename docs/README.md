@@ -1,6 +1,6 @@
 # code-quality-suite — 전체 가이드
 
-Claude Code 용 **자바 코드 리팩토링 + 보안 + 품질 검증 전문 Agent** 번들 Plugin 입니다 (v0.2.0). Refactor Agent 가 구조를 개선하고, Security Agent 가 OWASP Top 10 보안 취약점을 스캔하며, Quality Agent 가 SpotBugs/JaCoCo 를 포함한 품질을 검증합니다. `git commit` 직전 Hook 이 3-stage 파이프라인 실행을 권고합니다.
+Claude Code 용 **자바 코드 리팩토링 + 아키텍처 + 보안 + 품질 검증 전문 Agent** 번들 Plugin 입니다 (v0.3.0). Refactor Agent 가 구조를 개선하고, Architecture Agent 가 레이어 의존·DDD 경계를 검증하며, Security Agent 가 OWASP Top 10 보안 취약점을 스캔하고, Quality Agent 가 SpotBugs/JaCoCo 를 포함한 품질을 검증합니다. `git commit` 직전 Hook 이 파이프라인 실행을 권고합니다.
 
 ---
 
@@ -8,14 +8,16 @@ Claude Code 용 **자바 코드 리팩토링 + 보안 + 품질 검증 전문 Age
 
 | 종류 | 이름 | 역할 |
 |---|---|---|
-| Agent | `code-refactoring-agent` | 구조 개선 · CC/Cognitive/파라미터 메트릭 · 예외/Resource 안전 · 테스트 동시 갱신 · 브랜치/커밋 자동화 |
+| Agent | `code-refactoring-agent` | 구조 개선 · CC/Cognitive/파라미터 메트릭 · Immutability · Guard Clause · 예외/Resource 안전 · 브랜치/커밋 자동화 |
+| Agent | `architecture-review-agent` | 레이어 역방향 의존 · 순환 의존 · DDD Entity 노출 · 패키지명 검증 · `.architecture-report.md` 출력 (읽기 전용) |
 | Agent | `security-audit-agent` | OWASP Top 10 보안 스캔 · 하드코딩 Secret · 취약 의존성 · `.security-report.md` 출력 (읽기 전용) |
 | Agent | `code-quality-agent` | 규칙 준수 · 테스트 커버리지 · 성능 안티패턴 · SpotBugs/JaCoCo 파싱 · `.quality-report.md` 출력 (읽기 전용) |
-| Hook | `PreToolUse: Bash(git commit:*)` | Security + Quality BLOCK 마커 감지 시 exit 2 · 3-stage 파이프라인 권고 |
-| Command | `/run-pipeline [--strict]` | Refactor → Security → Quality 수동 실행 |
+| Hook | `PreToolUse: Bash(git commit:*)` | Architecture + Security + Quality BLOCK 마커 감지 시 exit 2 · 파이프라인 권고 |
+| Command | `/run-pipeline [--full] [--strict]` | 3-stage (기본) 또는 4-stage (--full) 파이프라인 수동 실행 |
+| Command | `/architecture-review [target]` | architecture-review-agent 단독 호출 |
 | Command | `/security-scan [target]` | security-audit-agent 단독 호출 |
 | Command | `/baseline create\|update\|show` | `.quality-baseline.json` 관리 |
-| Rules | `shared-standards.md` · `refactor-rules.md` · `quality-rules.md` · `security-rules.md` · `baseline-policy.md` | 3단 오버라이드 (사용자 > 프로젝트 > Plugin) |
+| Rules | `shared-standards.md` · `refactor-rules.md` · `quality-rules.md` · `security-rules.md` · `architecture-rules.md` · `baseline-policy.md` | 3단 오버라이드 (사용자 > 프로젝트 > Plugin) |
 
 ---
 

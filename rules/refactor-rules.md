@@ -287,3 +287,140 @@ String city = user.getCityName();   // User 내부에서 체이닝 처리
 1. 책임별 메서드 그룹화 → 별도 Service/Component 분리
 2. 데이터만 담는 필드들 → 내부 Value Object 추출
 3. 분리 후 원본 클래스는 Facade 역할 유지 (외부 호출자 영향 최소화)
+
+---
+
+## 13. Immutability 우선 정책 (v0.3.0+)
+
+**원칙:** 상태 변경 가능성을 최소화해 멀티스레드 안전성 확보 및 사이드 이펙트 제거.
+
+| 항목 | 규칙 | 심각도 |
+|---|---|---|
+| 인스턴스 필드 `final` 누락 | 생성 후 재할당되지 않는 필드는 `final` 강제 | Medium |
+| DTO/Value Object `record` 전환 | 불변 필드 3개 이상인 DTO → `record` 변환 권고 | Low |
+| 컬렉션 반환 | `List`/`Set`/`Map` 직접 반환 → `Collections.unmodifiableXxx` 또는 `List.copyOf()` 강제 | Medium |
+| 방어적 복사 | 생성자·setter 에서 받은 컬렉션·배열 → 복사 후 저장 | Medium |
+
+### 13.1 `final` 필드 강제
+
+```java
+// ❌ 재할당 없는데 final 미적용
+private String name;
+private int age;
+
+// ✅ final 선언
+private final String name;
+private final int age;
+```
+
+**예외:** Lombok `@Setter`, JPA `@Entity` 의 기본 생성자 요구 필드, Spring `@Autowired` 필드 (→ 생성자 주입으로 전환 권장).
+
+### 13.2 DTO → `record` 전환
+
+```java
+// ❌ 불변 DTO 클래스
+public class UserResponse {
+    private final Long id;
+    private final String name;
+    private final String email;
+    // getter, constructor...
+}
+
+// ✅ record (Java 16+)
+public record UserResponse(Long id, String name, String email) {}
+```
+
+**적용 신호:** `@Getter` + 모든 필드 `final` + 기본 생성자 없음 + 필드 3개 이상.
+
+### 13.3 컬렉션 불변 반환
+
+```java
+// ❌ 내부 리스트 직접 반환 — 외부에서 수정 가능
+public List<String> getTags() {
+    return this.tags;
+}
+
+// ✅ 불변 뷰 반환
+public List<String> getTags() {
+    return Collections.unmodifiableList(this.tags);
+    // 또는: return List.copyOf(this.tags);
+}
+```
+
+### 13.4 방어적 복사
+
+```java
+// ❌ 외부 리스트 참조 그대로 저장 — 외부에서 변경 시 내부 상태 오염
+public Order(List<Item> items) {
+    this.items = items;
+}
+
+// ✅ 방어적 복사
+public Order(List<Item> items) {
+    this.items = new ArrayList<>(items);
+}
+```
+
+---
+
+## 14. Guard Clause / Early Return (v0.3.0+)
+
+**원칙:** 전제 조건 실패를 메서드 진입 직후 조기 반환(또는 예외)으로 처리해 중첩 깊이 감소.
+
+| 항목 | 규칙 | 심각도 |
+|---|---|---|
+| 중첩 `if` 3레벨 초과 | Guard clause 로 조기 return/throw 권장 | Medium |
+| 전제 조건 후 `else` 블록 | `if (invalid) return` 패턴으로 `else` 제거 | Low |
+
+### 14.1 Guard Clause 전환
+
+```java
+// ❌ 중첩 if 4레벨 — 핵심 로직이 안쪽에 묻힘
+public String process(Order order) {
+    if (order != null) {
+        if (order.isValid()) {
+            if (order.hasItems()) {
+                if (order.getUser() != null) {
+                    return doProcess(order);  // 핵심 로직
+                }
+            }
+        }
+    }
+    return null;
+}
+
+// ✅ Guard clause — 실패 조건 먼저 처리, 핵심 로직 바깥에 노출
+public String process(Order order) {
+    if (order == null)         return null;
+    if (!order.isValid())      return null;
+    if (!order.hasItems())     return null;
+    if (order.getUser() == null) return null;
+
+    return doProcess(order);  // 핵심 로직 명확히 보임
+}
+```
+
+### 14.2 `else` 제거
+
+```java
+// ❌ 불필요한 else
+public void validate(String input) {
+    if (input == null || input.isBlank()) {
+        throw new IllegalArgumentException("입력 필수");
+    } else {
+        doValidate(input);  // else 불필요 — 위에서 이미 throw
+    }
+}
+
+// ✅ else 제거
+public void validate(String input) {
+    if (input == null || input.isBlank()) {
+        throw new IllegalArgumentException("입력 필수");
+    }
+    doValidate(input);
+}
+```
+
+**Agent 감지 기준:**
+- `if ... return/throw` 또는 `if ... throw` 블록 이후에 오는 `else` → Low 경고
+- 중첩 if 깊이가 3을 초과하는 경우 (Cognitive Complexity §10.2 와 별도 계산) → Medium 경고
