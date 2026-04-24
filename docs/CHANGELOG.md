@@ -4,6 +4,62 @@
 
 ---
 
+## [0.5.0] - 2026-04-24
+
+**Static Tools · Secret Scan · Multi-module · Operational Safety Release.** PMD/Checkstyle/OWASP Dependency-Check 통합, Secret Scan (trufflehog/ggshield) 연동, Multi-module 지원, /init-project 대화형 마법사, Baseline 만료 정책, @suppress 감사, Prompt Injection 방어.
+
+### Added — Rules
+
+- `rules/prompt-safety.md` — LLM Prompt Injection 방어 규칙
+  - PROMPT-INJ-01: `@suppress ALL/*/ANY` 와일드카드 → **High (BLOCK)**, 억제 무시
+  - PROMPT-INJ-02: "ignore all previous instructions", "jailbreak", "act as" 등 조작 문구 → Medium
+  - PROMPT-INJ-03: `system:/assistant:/user:` 롤 태그 주입 → Medium
+  - PROMPT-INJ-04: 40자+ Base64 주석 → Low (참고)
+  - 테스트 시나리오 예외: `// @test-prompt-injection` 태그
+- `rules/static-analysis-tools.md` — PMD · Checkstyle · OWASP Dependency-Check 리포트 파싱 규칙
+  - PMD priority 1~5 → Critical/High/Medium/Low 매핑
+  - Checkstyle error/warning/info → High/Medium/Low
+  - OWASP-DC CVSS 9.0+ Critical (BLOCK), 7.0~ High, 4.0~ Medium, 0.1~ Low
+  - Multi-module Glob 패턴 (`**/target/pmd.xml` 등)
+- `rules/baseline-policy.md` — version "2" 포맷 (v1 자동 마이그레이션)
+  - `registered_at` · `expires_at` 필드 추가
+  - 만료 임박 (30일 이내) → `[BASELINE-EXPIRING]` 경고
+  - 만료 (경과) → 정상 위반 승격, Critical 은 BLOCK 재활성화
+
+### Added — Commands
+
+- `/init-project [--preset <name>] [--skip-baseline] [--dry-run]` — 대화형 초기화 마법사
+  - 팀 규모·성숙도·스택·엄격도 Q&A → 맞춤 `quality-config.yml` 자동 생성
+  - 프리셋: startup / mid-team / enterprise / hexagonal
+  - 레거시 프로젝트 자동 baseline 초기화
+- `/suppress-audit [대상] [--min-count N] [--stale-days N]` — @suppress 사용 현황 감사
+  - 위반 코드별/파일별/작성자별 집계
+  - 사유 품질 검사 (양호/보통/부실/누락)
+  - Stale (180일+) 항목 리포트
+  - `.suppress-audit-report.md` 생성
+- `/baseline audit` — Baseline 만료 상태 감사 (신규 서브커맨드)
+- `/baseline extend <fingerprint> --days N --reason "<사유>"` — 만료 연장 (사유 필수)
+
+### Changed — Agent
+
+- `code-quality-agent` — PMD · Checkstyle · OWASP Dependency-Check 파싱 로직 추가 (§3.6)
+- `code-quality-agent` — Multi-module 리포트 탐색 + 모듈별 집계 (§3.7)
+- `code-quality-agent` / `security-audit-agent` / `architecture-review-agent` — Prompt-Safety 스캔 추가
+- `security-audit-agent` — Git Secret Scan 연동 (trufflehog/ggshield CLI)
+- `security-audit-agent` — Multi-module `**/pom.xml` 탐색
+- `architecture-review-agent` — ARCH-MODULE-01/02: 모듈 간 순환·과도 결합 감지 (§3.7)
+
+### Added — Test
+
+- `test/scenarios/MaliciousComment.java` — PROMPT-INJ 위반 감지 검증용
+- `test/scenarios/BadPmdReport.xml` — code-quality-agent PMD 리포트 파싱 검증용
+
+### Changed — Plugin 메타
+
+- `plugin.json` / `marketplace.json` — v0.5.0, 6 Agent + 8 Command, pmd/checkstyle/dependency-check/trufflehog/multi-module/prompt-injection 키워드 추가
+
+---
+
 ## [0.4.0] - 2026-04-24
 
 **Test · DB Migration · Suppression · DX Release.** 테스트 생성 자동화, DB 마이그레이션 안전성, @suppress 인라인 억제, @Transactional·Spring Security 아키텍처 규칙, YAML 임계값 설정 추가.

@@ -341,3 +341,37 @@
 - [x] `docs/README.md` — 6 Agent + 6 Command 표 갱신
 - [x] `docs/BUILD-PLAN.md` — Phase 12 추가 (이 항목)
 - [x] `docs/ROADMAP.md` — v0.4.0 ✅ 릴리즈 마킹
+
+---
+
+## Phase 13: v0.5.0 — 외부 툴·멀티모듈·운영 안전망 ✅
+
+**목표:** PMD/Checkstyle/OWASP-DC 통합 + Secret Scan + Multi-module 지원 + 도입 장벽 해소 + @suppress/Baseline 운영 안전망 + Prompt Injection 방어.
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| PMD/Checkstyle/OWASP-DC 파싱 | priority/severity/CVSS → 4단계 심각도 매핑 | 정적 분석 커버리지 확대 |
+| Multi-module 지원 | Glob 패턴 (`**/target/pmd.xml` 등) + 모듈별 태그 | 실무 프로젝트 구조 대응 |
+| Git Secret Scan 연동 | trufflehog 우선 + ggshield 백업 CLI 래퍼 | 하드코딩 Secret 커밋 이력 전수 검증 |
+| `/init-project` 대화형 마법사 | startup/mid-team/enterprise/hexagonal 프리셋 | 신규 도입 Q&A → 설정 자동 생성 |
+| Baseline 만료 정책 | v2 포맷 (`registered_at`·`expires_at`) + `/baseline audit`·`extend` | 영구 기술 부채 은닉 방지 |
+| `/suppress-audit` | 사유 품질 검사 + Stale 탐지 + 작성자별 집계 | @suppress 남용 방지 |
+| Prompt Injection 방어 | `rules/prompt-safety.md` + 모든 Agent 에 주석 스캔 | LLM 조작 시도 무력화 |
+
+**산출물:**
+- [x] `rules/prompt-safety.md` 신설 — PROMPT-INJ-01~04
+- [x] `rules/static-analysis-tools.md` 신설 — PMD/Checkstyle/OWASP-DC 파싱
+- [x] `rules/baseline-policy.md` — v2 포맷 (만료 정책) 추가
+- [x] `commands/init-project.md` 신설 — 대화형 초기화 마법사
+- [x] `commands/suppress-audit.md` 신설 — @suppress 감사
+- [x] `commands/baseline.md` — `audit` · `extend` 서브커맨드 추가
+- [x] `agents/code-quality-agent.md` — PMD/Checkstyle/OWASP-DC 파싱 로직 + Multi-module + Prompt-Safety
+- [x] `agents/security-audit-agent.md` — Secret Scan (trufflehog/ggshield) + Multi-module + Prompt-Safety
+- [x] `agents/architecture-review-agent.md` — Multi-module 의존 검증 (ARCH-MODULE-01/02) + Prompt-Safety
+- [x] `test/scenarios/MaliciousComment.java` 신설 — PROMPT-INJ 시나리오
+- [x] `test/scenarios/BadPmdReport.xml` 신설 — PMD 파싱 시나리오
+- [x] `.claude-plugin/plugin.json` · `marketplace.json` — v0.5.0, 6 Agent, 8 Command
+- [x] `docs/CHANGELOG.md` — [0.5.0] 섹션
+- [x] `docs/README.md` — 8 Command 표 갱신 + v0.5.0 소개
+- [x] `docs/BUILD-PLAN.md` — Phase 13 추가 (이 항목)
+- [x] `docs/ROADMAP.md` — v0.5.0 ✅ 릴리즈 마킹

@@ -1,6 +1,6 @@
 # code-quality-suite — 전체 가이드
 
-Claude Code 용 **자바 코드 리팩토링 + 아키텍처 + 보안 + 품질 + 테스트 생성 + DB 마이그레이션 검증 전문 Agent** 번들 Plugin 입니다 (v0.4.0). 6개 Agent + 6개 Command + @suppress 인라인 억제 + YAML 임계값 설정을 통해 Java/Spring Boot 프로젝트의 코드 품질을 전방위로 자동 검증합니다.
+Claude Code 용 **자바 코드 리팩토링 + 아키텍처 + 보안 + 품질 + 테스트 생성 + DB 마이그레이션 검증 전문 Agent** 번들 Plugin 입니다 (v0.5.0). 6개 Agent + 8개 Command + @suppress 인라인 억제 + YAML 임계값 설정 + **PMD/Checkstyle/OWASP Dependency-Check 통합 + trufflehog/ggshield Secret Scan + Multi-module 지원 + Prompt Injection 방어 + Baseline 만료 정책 + `/init-project` 대화형 마법사** 를 통해 Java/Spring Boot 프로젝트의 코드 품질을 전방위로 자동 검증합니다.
 
 ---
 
@@ -20,8 +20,10 @@ Claude Code 용 **자바 코드 리팩토링 + 아키텍처 + 보안 + 품질 + 
 | Command | `/security-scan [target]` | security-audit-agent 단독 호출 |
 | Command | `/generate-tests [target]` | test-generation-agent 단독 호출 |
 | Command | `/db-check [target]` | db-migration-agent 단독 호출 |
-| Command | `/baseline create\|update\|show` | `.quality-baseline.json` 관리 |
-| Rules | `shared-standards.md` · `refactor-rules.md` · `quality-rules.md` · `security-rules.md` · `architecture-rules.md` · `migration-rules.md` · `suppress-policy.md` · `baseline-policy.md` | 3단 오버라이드 (사용자 > 프로젝트 > Plugin) |
+| Command | `/baseline create\|update\|show\|audit\|extend` | `.quality-baseline.json` 관리 + 만료 감사 · 연장 |
+| Command | `/init-project [--preset]` | 대화형 초기화 마법사 (quality-config.yml + baseline 자동 생성) |
+| Command | `/suppress-audit [대상]` | @suppress 사용 현황 감사 리포트 |
+| Rules | `shared-standards.md` · `refactor-rules.md` · `quality-rules.md` · `security-rules.md` · `architecture-rules.md` · `migration-rules.md` · `suppress-policy.md` · `baseline-policy.md` · `static-analysis-tools.md` · `prompt-safety.md` | 3단 오버라이드 (사용자 > 프로젝트 > Plugin) |
 
 ---
 

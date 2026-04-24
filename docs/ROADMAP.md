@@ -13,7 +13,7 @@
 | **v0.2.0** | ✅ 릴리즈 | Hardening — OWASP Security Agent, SpotBugs/JaCoCo, Baseline, 3-stage 파이프라인 |
 | **v0.3.0** | ✅ 릴리즈 | Defensive Design — Immutability/Guard Clause, architecture-review-agent, security-rules 분리, 시나리오 테스트 |
 | **v0.4.0** | ✅ 릴리즈 | Test·DB·Suppression·DX — test-generation-agent, db-migration-agent, @suppress, @Transactional/Security 규칙, YAML config |
-| **v0.5.0** | 📝 계획 | 외부 툴·멀티 모듈·운영 안전망 — PMD/Checkstyle/OWASP-DC, Secret Scan, Multi-module, `/init-project`, Baseline 만료, `/suppress-audit`, Prompt Injection 방어 |
+| **v0.5.0** | ✅ 릴리즈 | 외부 툴·멀티 모듈·운영 안전망 — PMD/Checkstyle/OWASP-DC, Secret Scan, Multi-module, `/init-project`, Baseline 만료, `/suppress-audit`, Prompt Injection 방어 |
 | **v0.6.0** | 📝 계획 | CI/CD·Agent 협업·교육 — GitHub/GitLab Actions, PR 봇, Pre-push Hook, pipeline-state.json, `/agent-explain`, Large Diff Chunk 분할 |
 | **v0.7.0** | 📝 계획 | 리포트·AI 품질·프론트엔드 — JSON/HTML 리포트, 트렌드, Agent 메트릭, Confidence Score, frontend-rules, Rule Conflict Detection |
 | **v0.8.0** | 📝 계획 | 엔터프라이즈 확장 — 팀별 프로파일, Slack/Jira/Datadog 연동, compliance-audit-agent, `/changelog-gen`, 규칙별 WHY 문서 |

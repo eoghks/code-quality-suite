@@ -11,24 +11,29 @@
 
 ```json
 {
-  "version": "1",
-  "created": "2026-04-21T10:00:00Z",
-  "updated": "2026-04-21T10:00:00Z",
-  "generator": "code-quality-suite@0.2.0",
+  "version": "2",
+  "created": "2026-04-24T10:00:00Z",
+  "updated": "2026-04-24T10:00:00Z",
+  "generator": "code-quality-suite@0.5.0",
+  "default_expiry_days": 180,
   "violations": [
     {
       "file": "src/main/java/com/example/UserService.java",
       "line": 102,
       "code": "METHOD-LEN",
       "message": "73줄 (50줄 초과)",
-      "fingerprint": "a3f8c2d1e5b9704f..."
+      "fingerprint": "a3f8c2d1e5b9704f...",
+      "registered_at": "2026-04-24T10:00:00Z",
+      "expires_at": "2026-10-21T10:00:00Z"
     },
     {
       "file": "src/main/resources/mapper/LegacyMapper.xml",
       "line": 45,
       "code": "SQL-INJ",
       "message": "${legacyParam} 레거시 동적 쿼리 — 마이그레이션 예정 2026-Q3",
-      "fingerprint": "b2e7a1f4c8d03592..."
+      "fingerprint": "b2e7a1f4c8d03592...",
+      "registered_at": "2026-04-24T10:00:00Z",
+      "expires_at": "2026-09-30T10:00:00Z"
     }
   ]
 }
@@ -38,15 +43,27 @@
 
 | 필드 | 타입 | 설명 |
 |---|---|---|
-| `version` | string | 포맷 버전 (`"1"` 고정) |
+| `version` | string | 포맷 버전 (v0.5.0 부터 `"2"`) |
 | `created` | ISO8601 | 최초 생성 시각 |
 | `updated` | ISO8601 | 마지막 업데이트 시각 |
 | `generator` | string | 생성 Plugin 버전 |
+| `default_expiry_days` | int | 신규 등록 시 기본 만료 기간 (일) — 기본 180 |
 | `violations[].file` | string | 프로젝트 루트 기준 상대 경로 |
 | `violations[].line` | int | 위반 시작 라인 (이동해도 fingerprint 로 추적) |
 | `violations[].code` | string | 식별 코드 (`SQL-INJ`, `METHOD-LEN`, `N+1` 등) |
 | `violations[].message` | string | 위반 요약 + 해제 예정 사유 권장 |
 | `violations[].fingerprint` | string | SHA-256 (파일경로 + code + 정규화 메시지) 16진수 앞 16자 |
+| `violations[].registered_at` | ISO8601 | 최초 Baseline 등록 시각 (v0.5.0+) |
+| `violations[].expires_at` | ISO8601 | Baseline 만료 시각 — 초과 시 정상 위반 승격 (v0.5.0+) |
+
+### 1.2 version "1" 마이그레이션
+
+v0.5.0 이상에서 version "1" 파일을 로드하면 자동 마이그레이션:
+
+- `registered_at` = `created` 값으로 설정
+- `expires_at` = `registered_at` + `default_expiry_days` (기본 180일)
+- `version` → `"2"` 갱신
+- `/baseline update` 실행 시 파일 자동 업그레이드
 
 ### 1.2 Fingerprint 계산
 
@@ -81,6 +98,23 @@ SHA-256( violations[].file + "|" + violations[].code + "|" + normalize(violation
 ### 2.3 Baseline 없는 신규 프로젝트
 
 `.quality-baseline.json` 미존재 시 모든 위반을 신규 취급 (기존 동작과 동일).
+
+### 2.4 만료 정책 (v0.5.0+)
+
+각 baseline 항목의 `expires_at` 을 현재 시각과 비교:
+
+| 상태 | 조건 | 보고서 표시 | BLOCK |
+|---|---|---|---|
+| **유효** | `now < expires_at - 30일` | `[BASELINE]` | ❌ |
+| **만료 임박** | `expires_at - 30일 ≤ now < expires_at` | `[BASELINE-EXPIRING]` Medium 경고 | ❌ |
+| **만료됨** | `now ≥ expires_at` | 정상 위반으로 승격 (원래 심각도) | ✅ (심각도에 따라) |
+
+**Critical 이 만료되면 BLOCK 재활성화** — 레거시 Critical 을 영구히 허용할 수 없도록 강제.
+
+### 2.5 만료 연장
+
+해결 불가능한 기술 부채는 `/baseline extend <fingerprint> --days N` 으로 연장 가능.
+연장 시 메시지에 이유 필수 입력.
 
 ---
 
