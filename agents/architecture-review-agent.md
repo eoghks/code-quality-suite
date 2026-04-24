@@ -144,7 +144,32 @@ baseline 매칭 → [BASELINE] 태그 + 보고서 하단 별도 섹션
 
 ---
 
-## 5. `.architecture-report.md` 생성
+## 5. @suppress 인라인 억제 처리
+
+위반 라인 감지 시 아래 순서로 억제 주석을 확인한다:
+
+```
+1. 위반 라인 번호(N) 확인
+2. N-1, N-2 라인에서 @suppress 패턴 검색:
+   패턴: (//|--|\#|<!--)\s*@suppress\s+<위반코드>(\s+—\s+.+)?
+3. 매칭 결과 처리:
+   a. 코드 매칭 + 사유 있음  → [SUPPRESSED:<코드>] 처리, 보고서 Suppressed 섹션에 기록
+   b. 코드 매칭 + 사유 없음  → [SUPPRESS-NO-REASON] Medium 추가
+   c. 코드 불일치           → 억제 무시, 원래 심각도 유지
+4. --strict 옵션 전달 시    → 2~3 단계 스킵, 모든 위반 원래 심각도로 보고
+```
+
+**예시:**
+```java
+// @suppress ARCH-LAYER — 레거시 직접 접근, 2026-Q3 Service 분리 예정
+import com.example.repository.OrderRepository;
+```
+
+억제 정책 전체 기준: `rules/suppress-policy.md` 참조.
+
+---
+
+## 6. `.architecture-report.md` 생성
 
 보고서는 프로젝트 루트에 `.architecture-report.md` 로 저장한다.
 

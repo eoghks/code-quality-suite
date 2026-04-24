@@ -303,3 +303,41 @@
 - [x] `docs/README.md` — 4 Agent + 4 Command 표 갱신
 - [x] `docs/BUILD-PLAN.md` — Phase 11 추가 (이 항목)
 - [x] `docs/ROADMAP.md` — v0.3.0 ✅ 릴리즈 마킹
+
+---
+
+## Phase 12: v0.4.0 — 테스트·DB·억제·DX 개선 ✅
+
+**목표:** 테스트 생성 자동화 + DB 마이그레이션 안전성 + @suppress 인라인 억제 + 아키텍처 규칙 확장 + YAML 임계값 설정.
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| test-generation-agent 구현 | JUnit 5 + Mockito 스켈레톤 자동 생성 | v0.4.0 로드맵 항목 |
+| db-migration-agent 구현 | Flyway/Liquibase 정적 분석, 읽기 전용 | v0.4.0 로드맵 항목 |
+| @suppress 인라인 억제 | 직전 1~2 라인 주석, 사유 필수 (없으면 Medium) | Baseline 보다 가벼운 단건 억제 수단 |
+| ARCH-TX-01/02 규칙 | Controller @Transactional → Medium | 레이어 책임 명확화 |
+| ARCH-SEC-01/02/03 규칙 | anyRequest 누락 High, permitAll 과다/httpBasic Medium | Spring Security 설정 강화 |
+| YAML config 로드 | .claude/quality-config.yml 3단 오버라이드 | .md 오버라이드보다 낮은 진입 장벽 |
+| --with-tests 파이프라인 | Refactor → Test Gen → Security → Quality | 신규 메서드 자동 테스트 생성 포함 |
+| migration-report BLOCK hook | .migration-report.md 체크를 Hook 1번 섹션에 추가 | DB 변경 안전 커밋 강제 |
+
+**산출물:**
+- [x] `agents/test-generation-agent.md` 신설
+- [x] `agents/db-migration-agent.md` 신설
+- [x] `rules/migration-rules.md` 신설 — MIG-DROP/ALTER-NULL/ALTER-DEF/INDEX/NO-UNDO/VERSION/ENCODING
+- [x] `rules/suppress-policy.md` 신설 — @suppress 문법·위치·동작 규칙·지원 코드 목록
+- [x] `rules/architecture-rules.md` — §9 @Transactional + §10 Spring Security 추가
+- [x] `commands/generate-tests.md` 신설 — `/generate-tests [target] [--dry-run] [--no-run]`
+- [x] `commands/db-check.md` 신설 — `/db-check [target] [--strict] [--version-only]`
+- [x] `commands/run-pipeline.md` — `--with-tests` 옵션 추가
+- [x] `agents/security-audit-agent.md` — @suppress 로직 추가 (§5)
+- [x] `agents/architecture-review-agent.md` — @suppress 로직 추가 (§5)
+- [x] `agents/code-quality-agent.md` — @suppress 로직 추가 (§3-B) + YAML config 로드 (§1.1)
+- [x] `hooks/pre-commit-pipeline.sh` — .migration-report.md BLOCK 체크 추가 (v0.4.0, 섹션 1)
+- [x] `docs/CONFIG.md` 신설 — quality-config.yml 스키마 + 사용 예시
+- [x] `test/scenarios/BadMigration.sql` 신설 — DB 마이그레이션 위반 시나리오
+- [x] `.claude-plugin/plugin.json` · `marketplace.json` — v0.4.0, 6 Agent, 6 Command
+- [x] `docs/CHANGELOG.md` — [0.4.0] 섹션
+- [x] `docs/README.md` — 6 Agent + 6 Command 표 갱신
+- [x] `docs/BUILD-PLAN.md` — Phase 12 추가 (이 항목)
+- [x] `docs/ROADMAP.md` — v0.4.0 ✅ 릴리즈 마킹

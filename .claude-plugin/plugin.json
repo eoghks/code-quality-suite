@@ -1,7 +1,7 @@
 {
   "name": "code-quality-suite",
-  "version": "0.3.0",
-  "description": "Java/Spring Boot 코드 리팩토링 + 아키텍처 + 보안 + 품질 검증 전문 Agent 번들. Refactor Agent(구조 개선) + Architecture Agent(레이어·DDD 검증) + Security Agent(OWASP Top 10) + Quality Agent(SpotBugs/JaCoCo 통합) + 4-stage 파이프라인 Hook + Baseline 시스템",
+  "version": "0.4.0",
+  "description": "Java/Spring Boot 코드 리팩토링 + 아키텍처 + 보안 + 품질 + 테스트 생성 + DB 마이그레이션 검증 전문 Agent 번들. 6 Agent + 6 Command + @suppress 인라인 억제 + YAML 임계값 설정",
   "author": {
     "name": "daehwan"
   },
@@ -28,19 +28,29 @@
     "lombok",
     "architecture",
     "ddd",
-    "immutability"
+    "immutability",
+    "junit5",
+    "mockito",
+    "flyway",
+    "liquibase",
+    "db-migration",
+    "suppress"
   ],
   "agents": [
     "./agents/code-refactoring-agent.md",
     "./agents/architecture-review-agent.md",
     "./agents/security-audit-agent.md",
-    "./agents/code-quality-agent.md"
+    "./agents/code-quality-agent.md",
+    "./agents/test-generation-agent.md",
+    "./agents/db-migration-agent.md"
   ],
   "hooks": "./hooks/hooks.json",
   "commands": [
     "./commands/run-pipeline.md",
     "./commands/architecture-review.md",
     "./commands/security-scan.md",
-    "./commands/baseline.md"
+    "./commands/baseline.md",
+    "./commands/generate-tests.md",
+    "./commands/db-check.md"
   ]
 }

@@ -31,6 +31,23 @@ tools: Read, Grep, Glob, Bash(git diff:*), Bash(git log:*), Bash(git status:*), 
 
 **우선순위 충돌 시:** 사용자(`~/.claude/rules/`) > 프로젝트(`<proj>/.claude/rules/`) > Plugin 기본(`<plugin>/rules/`)
 
+### 1.1 YAML 설정 파일 로드 (임계값 오버라이드)
+
+```bash
+!`cat "${HOME}/.claude/quality-config.yml" 2>/dev/null || true`
+!`cat "${CLAUDE_PROJECT_DIR}/.claude/quality-config.yml" 2>/dev/null || true`
+```
+
+YAML 에서 읽는 임계값 (미설정 시 기본값 사용):
+
+| 키 | 기본값 | 설명 |
+|---|---|---|
+| `refactor.method.max-lines` | 50 | 메서드 최대 줄 수 |
+| `refactor.cc.threshold` | 10 | Cyclomatic Complexity |
+| `refactor.params.max` | 3 | 파라미터 최대 개수 |
+| `quality.jacoco.threshold` | 80 | JaCoCo 라인 커버리지 % |
+| `quality.jacoco.skip` | false | JaCoCo 검사 건너뜀 여부 |
+
 ---
 
 ## 2. 검증 범위 (Diff 기반)
@@ -124,6 +141,25 @@ gradlew.bat test
 2. **JaCoCo 리포트 탐색** — `target/site/jacoco/jacoco.xml` (Maven) · `build/reports/jacoco/test/jacocoTestReport.xml` (Gradle)
    - 존재 시: 변경 메서드 기준 라인 커버리지 계산 → 80% 미만 High
    - 부재 시: `[COV-MISSING]` Low 보고 + 설정 스니펫 첨부
+
+---
+
+## 3-B. @suppress 인라인 억제 처리
+
+위반 라인 감지 시 아래 순서로 억제 주석을 확인한다:
+
+```
+1. 위반 라인 번호(N) 확인
+2. N-1, N-2 라인에서 @suppress 패턴 검색:
+   패턴: (//|--|\#|<!--)\s*@suppress\s+<위반코드>(\s+—\s+.+)?
+3. 매칭 결과 처리:
+   a. 코드 매칭 + 사유 있음  → [SUPPRESSED:<코드>] 처리, 보고서 Suppressed 섹션에 기록
+   b. 코드 매칭 + 사유 없음  → [SUPPRESS-NO-REASON] Medium 추가
+   c. 코드 불일치           → 억제 무시, 원래 심각도 유지
+4. --strict 옵션 전달 시    → 2~3 단계 스킵, 모든 위반 원래 심각도로 보고
+```
+
+억제 정책 전체 기준: `rules/suppress-policy.md` 참조.
 
 ---
 
