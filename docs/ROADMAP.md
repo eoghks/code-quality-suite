@@ -14,10 +14,11 @@
 | **v0.3.0** | ✅ 릴리즈 | Defensive Design — Immutability/Guard Clause, architecture-review-agent, security-rules 분리, 시나리오 테스트 |
 | **v0.4.0** | ✅ 릴리즈 | Test·DB·Suppression·DX — test-generation-agent, db-migration-agent, @suppress, @Transactional/Security 규칙, YAML config |
 | **v0.5.0** | ✅ 릴리즈 | 외부 툴·멀티 모듈·운영 안전망 — PMD/Checkstyle/OWASP-DC, Secret Scan, Multi-module, `/init-project`, Baseline 만료, `/suppress-audit`, Prompt Injection 방어 |
-| **v0.6.0** | 📝 계획 | CI/CD·Agent 협업·교육 — GitHub/GitLab Actions, PR 봇, Pre-push Hook, pipeline-state.json, `/agent-explain`, Large Diff Chunk 분할 |
+| **v0.6.0** | 📝 계획 | Agent 협업·교육·대용량 처리 — pipeline-state.json, `/agent-explain`, Large Diff Chunk 분할 |
 | **v0.7.0** | 📝 계획 | 리포트·AI 품질·프론트엔드 — JSON/HTML 리포트, 트렌드, Agent 메트릭, Confidence Score, frontend-rules, Rule Conflict Detection |
 | **v0.8.0** | 📝 계획 | 엔터프라이즈 확장 — 팀별 프로파일, Slack/Jira/Datadog 연동, compliance-audit-agent, `/changelog-gen`, 규칙별 WHY 문서 |
 | **v1.0.0** | 📝 계획 | 프로덕션 릴리스 — i18n, Kotlin/Groovy/Scala, IDEA 플러그인, WebFlux/Reactive, 장기 안정화 |
+| **v1.1.0** | 📝 계획 | CI/CD 통합 — GitHub/GitLab Actions 템플릿, PR 봇, Pre-push Hook |
 
 ---
 
@@ -170,35 +171,9 @@
 
 ---
 
-## v0.6.0 — CI/CD 통합 · Agent 협업 · 교육 기능
+## v0.6.0 — Agent 협업 · 교육 · 대용량 처리
 
-**목표:** Claude Code 외부 파이프라인 연동 + Agent 간 교차 검증 + 개발자 학습 곡선 단축.
-
-### GitHub Actions 템플릿 자동 생성
-
-```
-/generate-workflow
-```
-
-- `.github/workflows/code-quality.yml` 자동 생성
-- SpotBugs + JaCoCo + OWASP Dependency-Check 포함
-- PR 시 자동 파이프라인 실행
-
-### GitLab CI/CD 템플릿 자동 생성
-
-- `.gitlab-ci.yml` 자동 생성 (GitHub Actions 와 동일 커버리지)
-- GitLab Merge Request 파이프라인 연동
-- GitLab Code Quality 리포트 포맷 출력 (`gl-code-quality-report.json`)
-
-### PR 자동 코멘트 봇
-
-- `gh pr comment` 로 Quality / Security 보고서 요약을 PR 코멘트에 자동 게시
-- BLOCK 항목은 `❌` 아이콘 + 라인 링크 포함
-
-### Pre-push Hook 연동
-
-- `Bash(git push:*)` 매처 추가 → push 직전에도 Security + Quality 검증
-- 로컬 pre-commit 과 다른 레이어에서 이중 안전망
+**목표:** Agent 간 교차 검증 + 개발자 학습 곡선 단축 + 대용량 PR 대응.
 
 ### Agent 협업 — `pipeline-state.json`
 
@@ -347,6 +322,38 @@
 - 회귀 테스트 suite (시나리오별 더미 프로젝트로 전체 파이프라인 검증)
 - SemVer 기반 Breaking Change 관리
 - 커뮤니티 기여 가이드 (`CONTRIBUTING.md`)
+
+---
+
+## v1.1.0 — CI/CD 통합
+
+**목표:** 외부 파이프라인 연동 (사내 CI/CD 활용도에 따라 일정 조정).
+
+### GitHub Actions 템플릿 자동 생성
+
+```
+/generate-workflow
+```
+
+- `.github/workflows/code-quality.yml` 자동 생성
+- SpotBugs + JaCoCo + OWASP Dependency-Check 포함
+- PR 시 자동 파이프라인 실행
+
+### GitLab CI/CD 템플릿 자동 생성
+
+- `.gitlab-ci.yml` 자동 생성 (GitHub Actions 와 동일 커버리지)
+- GitLab Merge Request 파이프라인 연동
+- GitLab Code Quality 리포트 포맷 출력 (`gl-code-quality-report.json`)
+
+### PR 자동 코멘트 봇
+
+- `gh pr comment` 로 Quality / Security 보고서 요약을 PR 코멘트에 자동 게시
+- BLOCK 항목은 `❌` 아이콘 + 라인 링크 포함
+
+### Pre-push Hook 연동
+
+- `Bash(git push:*)` 매처 추가 → push 직전에도 Security + Quality 검증
+- 로컬 pre-commit 과 다른 레이어에서 이중 안전망
 
 ---
 
