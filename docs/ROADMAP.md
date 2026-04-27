@@ -15,7 +15,7 @@
 | **v0.4.0** | ✅ 릴리즈 | Test·DB·Suppression·DX — test-generation-agent, db-migration-agent, @suppress, @Transactional/Security 규칙, YAML config |
 | **v0.5.0** | ✅ 릴리즈 | 외부 툴·멀티 모듈·운영 안전망 — PMD/Checkstyle/OWASP-DC, Secret Scan, Multi-module, `/init-project`, Baseline 만료, `/suppress-audit`, Prompt Injection 방어 |
 | **v0.6.0** | ✅ 릴리즈 | Agent 협업·교육·대용량 처리 — pipeline-state.json, `/agent-explain`, Large Diff Chunk 분할 |
-| **v0.7.0** | 📝 계획 | 리포트·AI 품질·프론트엔드 — JSON/HTML 리포트, 트렌드, Agent 메트릭, Confidence Score, frontend-rules, Rule Conflict Detection |
+| **v0.7.0** | 📝 계획 | Round-trip 피드백 루프·리포트·AI 품질·프론트엔드 — Quality BLOCK → Refactor 자동 재호출, JSON/HTML 리포트, 트렌드, Confidence Score, frontend-rules, Rule Conflict Detection |
 | **v0.8.0** | 📝 계획 | 엔터프라이즈 확장 — 팀별 프로파일, Slack/Jira/Datadog 연동, compliance-audit-agent, `/changelog-gen`, 규칙별 WHY 문서 |
 | **v1.0.0** | 📝 계획 | 프로덕션 릴리스 — i18n, Kotlin/Groovy/Scala, IDEA 플러그인, WebFlux/Reactive, 장기 안정화 |
 | **v1.1.0** | 📝 계획 | CI/CD 통합 — GitHub/GitLab Actions 템플릿, PR 봇, Pre-push Hook |
@@ -199,9 +199,75 @@
 
 ---
 
-## v0.7.0 — 리포트 고도화 · AI 품질 · 프론트엔드 커버리지
+## v0.7.0 — Round-trip 피드백 루프 · 리포트 고도화 · AI 품질 · 프론트엔드
 
-**목표:** 보고서 가독성·분석성 + False Positive 완화 + 프론트엔드 규칙 확장.
+**목표:** Quality BLOCK 시 자동 재수정 루프 + 보고서 가독성·분석성 + False Positive 완화 + 프론트엔드 규칙 확장.
+
+### Round-trip 피드백 루프 (핵심 신규)
+
+현재(v0.6.0)는 Quality Agent 가 BLOCK 을 내면 파이프라인이 멈추고 사용자가 수동으로 재실행해야 한다.
+v0.7.0 에서는 **자동 재수정 루프**를 도입해 BLOCK 해소까지 자동으로 반복한다.
+
+#### 동작 흐름
+
+```
+Quality Agent → BLOCK 발생
+      │
+      │ pipeline-state.json 에 block_reasons 기록
+      │ {
+      │   "block_reasons": [
+      │     { "code": "CC-HIGH", "file": "OrderService.java", "line": 42 },
+      │     { "code": "NULL-RETURN", "file": "UserService.java", "line": 88 }
+      │   ],
+      │   "retry": { "count": 0, "max": 2 }
+      │ }
+      │
+      ▼
+Refactor Agent 재호출 (block_reasons 타겟만)
+      │
+      │ CC-HIGH → 메서드 분리
+      │ NULL-RETURN → Optional 전환
+      │
+      ▼
+Quality Agent 재실행
+      │
+      ├─ PASS → 파이프라인 완료 ✅
+      └─ BLOCK (retry.count < max) → 재시도
+               (retry.count == max) → 사용자에게 보고 ⛔
+```
+
+#### pipeline-state.json 확장 필드
+
+```json
+{
+  "stages": {
+    "quality": {
+      "block": true,
+      "block_reasons": [
+        { "code": "CC-HIGH",    "file": "OrderService.java", "line": 42, "severity": "Critical" },
+        { "code": "NULL-RETURN","file": "UserService.java",  "line": 88, "severity": "High" }
+      ]
+    }
+  },
+  "retry": {
+    "count": 1,
+    "max": 2,
+    "history": [
+      { "attempt": 1, "fixed": ["CC-HIGH"], "remaining_blocks": 1 }
+    ]
+  }
+}
+```
+
+#### 구현 범위
+
+- `commands/run-pipeline.md` — 재시도 루프 로직 (`max: 2` 기본)
+- `agents/code-quality-agent.md` — `block_reasons` 구조화 출력 추가
+- `agents/code-refactoring-agent.md` — `block_reasons` 타겟 모드 추가
+- `--no-retry` 옵션 — 루프 비활성화 (수동 모드)
+- `--max-retry N` 옵션 — 최대 재시도 횟수 조정
+
+---
 
 ### 구조화 출력 (JSON)
 
