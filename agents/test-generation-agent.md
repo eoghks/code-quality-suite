@@ -168,7 +168,45 @@ Test Generation Report
 
 ---
 
-## 6. 금지 사항
+## 6. pipeline-state.json 연동 (v0.6.0+)
+
+### 6.1 시작 시 — Refactor 결과 읽기
+
+```json
+// pipeline-state.json 에서 읽기
+{
+  "stages": {
+    "refactor": {
+      "modified_files": ["UserService.java", "OrderService.java"]
+    }
+  }
+}
+```
+
+`modified_files` 존재 시 해당 파일의 public 메서드만 우선 대상으로 테스트 생성.
+단독 호출(`/generate-tests`) 시 파일 없어도 무시.
+
+### 6.2 완료 시 — Test 결과 기록
+
+```json
+// pipeline-state.json 에 stages.test 추가
+{
+  "stages": {
+    "test": {
+      "completed_at": "<ISO8601>",
+      "target_methods": 5,
+      "generated": 4,
+      "disabled": 1,
+      "test_result": "통과 12건 / 실패 0건",
+      "commit": "<SHA>"
+    }
+  }
+}
+```
+
+---
+
+## 7. 금지 사항
 
 - ❌ `src/main/` 프로덕션 코드 수정 (테스트 파일만 생성·수정)
 - ❌ 2회 시도 후에도 실패 시 무한 재시도 — `@Disabled` 처리로 종료

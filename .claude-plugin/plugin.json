@@ -1,7 +1,7 @@
 {
   "name": "code-quality-suite",
-  "version": "0.5.0",
-  "description": "Java/Spring Boot 코드 품질 통합 Agent 번들. 6 Agent + 8 Command · Refactor·Architecture·Security·Quality·TestGen·DBMigration · PMD/Checkstyle/OWASP-DC · trufflehog Secret Scan · Multi-module · Prompt Injection 방어 · Baseline 만료 정책 · @suppress 감사 · /init-project 마법사",
+  "version": "0.6.0",
+  "description": "Java/Spring Boot 코드 품질 통합 Agent 번들. 6 Agent + 9 Command · Refactor·Architecture·Security·Quality·TestGen·DBMigration · PMD/Checkstyle/OWASP-DC · trufflehog Secret Scan · Multi-module · Prompt Injection 방어 · Baseline 만료 정책 · @suppress 감사 · /init-project 마법사 · pipeline-state.json Agent 협업 · /agent-explain 교육 · Large Diff Chunk 분할",
   "author": {
     "name": "daehwan"
   },
@@ -62,6 +62,7 @@
     "./commands/generate-tests.md",
     "./commands/db-check.md",
     "./commands/init-project.md",
-    "./commands/suppress-audit.md"
+    "./commands/suppress-audit.md",
+    "./commands/agent-explain.md"
   ]
 }

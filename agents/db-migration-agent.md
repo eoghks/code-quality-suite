@@ -181,7 +181,31 @@ Medium/Low 만 존재 → [PASS: MIGRATION OK] (경고 포함)
 
 ---
 
-## 6. 금지 사항
+## 6. pipeline-state.json 연동 (v0.6.0+)
+
+### 6.1 완료 시 — Migration 결과 기록
+
+```json
+// pipeline-state.json 에 stages.migration 추가
+{
+  "stages": {
+    "migration": {
+      "completed_at": "<ISO8601>",
+      "block": false,
+      "critical_count": 0,
+      "high_count": 1,
+      "report": ".migration-report.md"
+    }
+  }
+}
+```
+
+단독 호출(`/db-check`) 시 `pipeline-state.json` 이 없으면 새로 생성.
+파이프라인 호출 시 기존 파일에 `stages.migration` 만 추가(병합).
+
+---
+
+## 7. 금지 사항
 
 - ❌ 마이그레이션 스크립트 수정 — 읽기 전용, 수정 제안만
 - ❌ DB 실제 연결 시도 — 정적 분석만

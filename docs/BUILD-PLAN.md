@@ -375,3 +375,30 @@
 - [x] `docs/README.md` — 8 Command 표 갱신 + v0.5.0 소개
 - [x] `docs/BUILD-PLAN.md` — Phase 13 추가 (이 항목)
 - [x] `docs/ROADMAP.md` — v0.5.0 ✅ 릴리즈 마킹
+
+---
+
+## Phase 14: v0.6.0 — Agent 협업 · 교육 · 대용량 처리 ✅
+
+**목표:** pipeline-state.json 으로 Agent 간 상태 공유 + /agent-explain 교육 커맨드 + Large Diff Chunk 자동 분할.
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| pipeline-state.json | 세션 단위 JSON 파일, 모든 Agent 가 읽고 씀 | Agent 독립 실행 한계 해소, 변경 범위 최적화 |
+| 충돌 해소 정책 | Security Critical > Architecture High > Refactor Medium | 권고 충돌 시 심각도 우선순위 자동 적용 |
+| `/agent-explain` | 위반 코드별 배경·위험·해결책 + --examples/--ref 옵션 | 주니어 온보딩·코드 리뷰 근거 설명 |
+| Large Diff Chunk | 50개 파일 초과 시 자동 30개 단위 분할, --chunk-size 옵션 | Context Window 초과·토큰 폭증 방지 |
+
+**산출물:**
+- [x] `commands/agent-explain.md` 신설 — /agent-explain 교육 커맨드
+- [x] `commands/run-pipeline.md` — pipeline-state.json 초기화 로직 + --chunk-size 옵션 + Chunk 분할 절차 + 결과 요약 업데이트
+- [x] `agents/code-refactoring-agent.md` — §5 pipeline-state.json 기록 추가 (§6~8 번호 조정)
+- [x] `agents/architecture-review-agent.md` — §7 pipeline-state.json 연동 추가
+- [x] `agents/security-audit-agent.md` — §9 pipeline-state.json 연동 추가
+- [x] `agents/code-quality-agent.md` — §8 pipeline-state.json 연동 + Chunk 모드 추가
+- [x] `agents/test-generation-agent.md` — §6 pipeline-state.json 연동 추가 (§7 금지 사항으로 번호 조정)
+- [x] `agents/db-migration-agent.md` — §6 pipeline-state.json 연동 추가 (§7 금지 사항으로 번호 조정)
+- [x] `.claude-plugin/plugin.json` · `marketplace.json` — v0.6.0, 6 Agent, 9 Command
+- [x] `docs/CHANGELOG.md` — [0.6.0] 섹션
+- [x] `docs/BUILD-PLAN.md` — Phase 14 추가 (이 항목)
+- [x] `docs/ROADMAP.md` — v0.6.0 ✅ 릴리즈 마킹

@@ -1,6 +1,6 @@
 ---
-description: Refactor → Security → Quality 3-stage 파이프라인 수동 실행. --full 로 Architecture 검증 추가, --with-tests 로 Test Generation 삽입, --strict 로 Baseline 무시 전수 검사 가능.
-argument-hint: "[파일경로 | 브랜치명 | --full | --with-tests] [--strict]"
+description: Refactor → Security → Quality 3-stage 파이프라인 수동 실행. --full 로 Architecture 검증 추가, --with-tests 로 Test Generation 삽입, --strict 로 Baseline 무시 전수 검사, --chunk-size 로 대용량 diff 분할 가능.
+argument-hint: "[파일경로 | 브랜치명 | --full | --with-tests] [--strict] [--chunk-size N]"
 ---
 
 # /run-pipeline
@@ -8,6 +8,7 @@ argument-hint: "[파일경로 | 브랜치명 | --full | --with-tests] [--strict]
 **역할:** `code-refactoring-agent` → `security-audit-agent` → `code-quality-agent` 를 순차 실행합니다.
 `--full` 플래그 추가 시 `architecture-review-agent` 가 2번째 Stage 로 삽입됩니다.
 `--with-tests` 플래그 추가 시 `test-generation-agent` 가 Refactor 이후 Stage 로 삽입됩니다.
+각 Stage 는 `pipeline-state.json` 을 통해 완료 상태와 수정 파일 목록을 공유합니다.
 
 ---
 
@@ -21,12 +22,30 @@ argument-hint: "[파일경로 | 브랜치명 | --full | --with-tests] [--strict]
 | `--full` | Architecture Agent 삽입 (4-stage). PR 전·대규모 리팩토링 후 권장 |
 | `--with-tests` | Test Generation Agent 삽입 (Refactor 직후). 신규 메서드 테스트 자동 생성 |
 | `--strict` | Baseline 무시 + 전체 `src/main/**` 전수 검사 |
+| `--chunk-size N` | 변경 파일을 N개 단위로 분할 처리 (기본: 파일 50개 초과 시 자동 30개 단위) |
 
 ---
 
 ## 실행 절차 — 기본 (3-stage)
 
-### 1. 대상 범위 확정 + Baseline 로드
+### 0. pipeline-state.json 초기화
+
+파이프라인 시작 시 프로젝트 루트에 `pipeline-state.json` 을 생성(또는 초기화)합니다.
+
+```json
+{
+  "session_id": "<ISO8601 타임스탬프>",
+  "target": "<대상 범위>",
+  "options": { "full": false, "with_tests": false, "strict": false, "chunk_size": 30 },
+  "stages": {},
+  "conflicts": []
+}
+```
+
+- 이전 세션의 `pipeline-state.json` 이 남아있으면 덮어씁니다.
+- 파이프라인 종료 시(PASS 또는 최종 BLOCK) `stages.completed_at` 기록 후 유지 — 다음 `/run-pipeline` 시작 시 초기화.
+
+### 1. 대상 범위 확정 + Baseline 로드 + Chunk 분할
 
 인자 해석:
 - 없음 → `git status` + `git log main..HEAD --name-only` 로 변경 파일 수집
@@ -35,6 +54,31 @@ argument-hint: "[파일경로 | 브랜치명 | --full | --with-tests] [--strict]
 - `--strict` → Baseline 로드 건너뜀, 대상 = 전체 소스
 
 **Baseline 로드:** `--strict` 아닌 경우 `.quality-baseline.json` 존재 시 fingerprint Set 로드.
+
+**Chunk 분할 (Large Diff 대응):**
+
+변경 파일 수가 `chunk_size`(기본 30) 를 초과하면 자동으로 분할 처리합니다.
+
+```
+변경 파일 목록 수집 → 총 N개
+N ≤ chunk_size(또는 --chunk-size 지정값):
+  → 단일 pass 처리 (기존 방식)
+N > chunk_size:
+  → chunk 1: 파일 1~30
+  → chunk 2: 파일 31~60
+  → ...
+  → 각 chunk 별 부분 보고서 생성
+  → 파이프라인 종료 시 단일 .quality-report.md 로 병합
+```
+
+`pipeline-state.json` 에 chunk 정보 기록:
+```json
+"chunks": {
+  "total": 3,
+  "current": 1,
+  "files_per_chunk": 30
+}
+```
 
 ### 2. Refactor Agent 호출
 
@@ -73,6 +117,12 @@ argument-hint: "[파일경로 | 브랜치명 | --full | --with-tests] [--strict]
 ### Stage 3: Quality
 - Critical: A건 · High: B건 · SpotBugs: G건 · JaCoCo: H%
 - 상태: [PASS: COMMIT READY] | [BLOCK: COMMIT STOP]
+
+### Agent 충돌 해소 (있을 경우)
+- <파일명>: Refactor(메서드 분리) ↔ Security(구조 유지) → Security 우선 적용
+
+### Chunk 처리 (해당 시)
+- 총 N개 파일 → chunk 3개 처리 완료 · 보고서 병합
 
 ### 최종 판정
 - ✅ PASS → git commit 진행 가능

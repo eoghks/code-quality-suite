@@ -294,3 +294,57 @@ Critical 이 없으면 대신 아래 출력:
 - 빌드 도구 미감지 → 테스트 실행 스킵 + Low 보고 (Critical 아님)
 - 테스트 실행 자체 실패 (컴파일 에러 등) → Critical + 에러 메시지 포함
 - 규칙 파일 로드 실패 → 기본 규칙 (Plugin 번들) 만 적용 + Low 보고
+
+---
+
+## 8. pipeline-state.json 연동 (v0.6.0+)
+
+### 8.1 시작 시 — 이전 전체 Stage 결과 읽기
+
+파이프라인 마지막 Stage 로서 이전 모든 Stage 정보를 읽어 활용한다:
+
+```json
+// 읽기 대상
+{
+  "stages": {
+    "refactor":  { "modified_files": ["..."], "test_result": "통과 N건 / 실패 0건" },
+    "test":      { "generated": 3, "disabled": 1 },
+    "architecture": { "high_count": 0 },
+    "security":  { "critical_count": 0, "high_count": 2 }
+  },
+  "chunks": { "total": 2, "current": 1, "files_per_chunk": 30 }
+}
+```
+
+- `refactor.modified_files` → 해당 파일들을 우선 검증
+- `chunks` 존재 시 → **Chunk 모드** 동작: 현재 chunk 파일 범위만 검증, 부분 보고서 생성
+- 모든 chunk 완료 후 → 부분 보고서들을 단일 `.quality-report.md` 로 병합
+
+### 8.2 Chunk 모드 동작
+
+```
+pipeline-state.json 에 chunks 필드 존재 시:
+  chunk N 처리 → .quality-report.chunk-N.md 생성
+  마지막 chunk (current == total):
+    → 모든 .quality-report.chunk-*.md 읽기
+    → 심각도별 통합 → 단일 .quality-report.md 덮어쓰기
+    → .quality-report.chunk-*.md 삭제
+```
+
+### 8.3 완료 시 — Quality 결과 기록
+
+```json
+// pipeline-state.json 에 stages.quality 추가
+{
+  "stages": {
+    "quality": {
+      "completed_at": "<ISO8601>",
+      "block": false,
+      "critical_count": 0,
+      "high_count": 3,
+      "chunks_processed": 2,
+      "report": ".quality-report.md"
+    }
+  }
+}
+```

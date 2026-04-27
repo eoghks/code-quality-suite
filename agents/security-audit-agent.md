@@ -213,3 +213,57 @@ Security Audit Report saved → .security-report.md
 - Baseline 제외: N건
 - 다음: Quality Agent 실행 (/agent code-quality-agent)
 ```
+
+---
+
+## 9. pipeline-state.json 연동 (v0.6.0+)
+
+### 9.1 시작 시 — 이전 Stage 결과 읽기
+
+파이프라인으로 호출된 경우 `pipeline-state.json` 을 읽어 수정된 파일 목록을 파악한다:
+
+```json
+// 읽기 대상 필드
+{
+  "stages": {
+    "refactor": { "modified_files": ["UserService.java", "..."] },
+    "architecture": { "block": false }
+  }
+}
+```
+
+- `refactor.modified_files` 존재 시 해당 파일을 우선 검증 (변경 범위 최적화)
+- `architecture.block: true` 이면 이미 파이프라인이 중단되어야 하므로 실행 불필요 — run-pipeline 이 제어
+- 단독 호출(`/security-scan`) 시 파일 없어도 무시하고 진행
+
+### 9.2 완료 시 — Security 결과 기록
+
+```json
+// pipeline-state.json 에 stages.security 추가
+{
+  "stages": {
+    "security": {
+      "completed_at": "<ISO8601>",
+      "block": true,
+      "critical_count": 1,
+      "high_count": 2,
+      "report": ".security-report.md"
+    }
+  }
+}
+```
+
+### 9.3 충돌 감지
+
+Refactor 권고와 Security 검증이 충돌하는 경우 `conflicts` 에 기록:
+
+```json
+"conflicts": [
+  {
+    "file": "UserService.java",
+    "refactor_says": "메서드 분리 권고",
+    "security_says": "현재 구조 유지 (@PreAuthorize 분리 시 누락 위험)",
+    "resolution": "Security 우선 (Critical > Medium)"
+  }
+]
+```
