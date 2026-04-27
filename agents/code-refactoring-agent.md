@@ -138,7 +138,30 @@ EOF
 
 ---
 
-## 5. 완료 보고 (Quality Agent 인계용)
+## 5. pipeline-state.json 기록
+
+리팩토링 완료 후 `pipeline-state.json` 에 Stage 결과를 기록합니다.
+파일이 없으면 새로 생성합니다 (단독 실행 시).
+
+```json
+{
+  "stages": {
+    "refactor": {
+      "completed_at": "<ISO8601>",
+      "branch": "<현재 브랜치명>",
+      "commits": ["<hash1>: <type>: <요약>", "<hash2>: ..."],
+      "modified_files": ["src/main/java/.../UserService.java", "..."],
+      "test_result": "통과 N건 / 실패 0건"
+    }
+  }
+}
+```
+
+**다음 Agent (Security / Architecture) 는 이 파일의 `modified_files` 를 읽어 변경 범위만 재검증합니다.**
+
+---
+
+## 6. 완료 보고 (Quality Agent 인계용)
 
 작업 종료 시 아래 형식으로 요약을 출력해 메인 세션 / Quality Agent 가 다음 단계로 활용하도록 합니다.
 
@@ -165,7 +188,7 @@ EOF
 
 ---
 
-## 6. 금지 사항 (반드시 준수)
+## 7. 금지 사항 (반드시 준수)
 
 - ❌ main / master 직접 커밋
 - ❌ `git push` 실행 (push 는 메인 세션·사용자 책임)
@@ -177,7 +200,7 @@ EOF
 
 ---
 
-## 7. 의문 상황 처리
+## 8. 의문 상황 처리
 
 - 규칙 충돌 (예: 사용자 오버라이드 vs Plugin 기본) → **사용자 규칙 우선**
 - 리팩토링 방향이 2가지 이상 타당 → 보수적 선택(기존 동작 변경 최소) + 보고서에 대안 명시

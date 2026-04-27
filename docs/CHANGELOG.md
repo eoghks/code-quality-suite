@@ -4,6 +4,45 @@
 
 ---
 
+## [0.6.0] - 2026-04-27
+
+**Agent 협업 · 교육 · 대용량 처리 Release.** pipeline-state.json Agent 간 상태 공유, /agent-explain 교육 커맨드, Large Diff Chunk 자동 분할.
+
+### Added — Commands
+
+- `commands/agent-explain.md` — `/agent-explain <CODE>` 위반 코드 교육 커맨드 (신규)
+  - 보안/품질/아키텍처/마이그레이션/정적분석/Prompt Safety 전 코드 지원
+  - `--examples` 옵션: ❌/✅ 코드 예시 확장 출력
+  - `--ref` 옵션: OWASP/CWE/CVE 외부 참고 링크 출력
+  - 인자 없음: 지원 전체 위반 코드 목록 출력
+
+### Added — Agent 협업 (`pipeline-state.json`)
+
+- `commands/run-pipeline.md` — pipeline-state.json 초기화·종료 로직 추가
+  - Stage 0: 파이프라인 시작 시 `pipeline-state.json` 생성/초기화
+  - Stage 완료마다 `stages.<name>` 기록 (완료 시각·수정 파일·BLOCK 여부)
+  - 충돌 해소 정책: Security Critical > Architecture High > Refactor Medium
+- 모든 Agent (`code-refactoring-agent`, `architecture-review-agent`, `security-audit-agent`, `code-quality-agent`, `test-generation-agent`, `db-migration-agent`) — pipeline-state.json 연동 섹션 추가
+  - 시작 시: 이전 Stage 의 `modified_files` 읽어 검증 범위 최적화
+  - 완료 시: 자신의 Stage 결과 기록
+  - 권고 충돌 시: `conflicts[]` 배열에 충돌 내용 + 우선순위 기반 해소 결과 기록
+
+### Added — Large Diff Chunk 분할
+
+- `commands/run-pipeline.md` — `--chunk-size N` 옵션 추가
+  - 변경 파일 50개 초과 시 자동 분할 (기본 30개 단위)
+  - chunk 별 `.quality-report.chunk-N.md` 부분 보고서 생성
+  - 최종 chunk 완료 시 단일 `.quality-report.md` 로 병합
+  - `pipeline-state.json` 에 `chunks` 필드로 진행 상태 추적
+- `agents/code-quality-agent.md` — §8 Chunk 모드 동작 추가
+
+### Changed
+
+- `commands/run-pipeline.md` 인자 힌트 및 설명 업데이트 (`--chunk-size` 추가)
+- `plugin.json` / `marketplace.json` — v0.6.0, Command 9개로 확장
+
+---
+
 ## [0.5.0] - 2026-04-24
 
 **Static Tools · Secret Scan · Multi-module · Operational Safety Release.** PMD/Checkstyle/OWASP Dependency-Check 통합, Secret Scan (trufflehog/ggshield) 연동, Multi-module 지원, /init-project 대화형 마법사, Baseline 만료 정책, @suppress 감사, Prompt Injection 방어.

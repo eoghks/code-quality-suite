@@ -243,3 +243,57 @@ High 가 없으면 마지막 줄은 `[PASS: ARCH OK]`.
 | `/architecture-review --full` | 전체 src/ | 적용 |
 | `/architecture-review --strict` | 변경 파일 | 무시 |
 | `/architecture-review --full --strict` | 전체 src/ | 무시 |
+
+---
+
+## 7. pipeline-state.json 연동 (v0.6.0+)
+
+### 7.1 시작 시 — Refactor 결과 읽기
+
+파이프라인으로 호출된 경우 `pipeline-state.json` 을 읽어 Refactor Agent 가 수정한 파일 목록을 파악한다:
+
+```json
+// pipeline-state.json 에서 읽기
+{
+  "stages": {
+    "refactor": {
+      "modified_files": ["UserController.java", "OrderService.java"]
+    }
+  }
+}
+```
+
+`modified_files` 가 존재하면 **해당 파일들을 우선 검증**한다 (재검증 범위 최적화).
+단독 호출(`/architecture-review`) 시에는 파일이 없어도 무시하고 일반 범위로 진행.
+
+### 7.2 완료 시 — Architecture 결과 기록
+
+```json
+// pipeline-state.json 에 쓰기 (stages.architecture 추가)
+{
+  "stages": {
+    "architecture": {
+      "completed_at": "<ISO8601>",
+      "block": false,
+      "high_count": 0,
+      "medium_count": 2,
+      "report": ".architecture-report.md"
+    }
+  }
+}
+```
+
+### 7.3 충돌 감지
+
+Refactor Agent 권고와 Architecture 검증 결과가 충돌하는 경우 (예: 메서드 분리 권고 vs 레이어 경계 강제) `conflicts` 배열에 기록:
+
+```json
+"conflicts": [
+  {
+    "file": "OrderController.java",
+    "refactor_says": "메서드 분리 권고 (75줄 초과)",
+    "arch_says": "Service 레이어로 이전 필요 (ARCH-LAYER-01)",
+    "resolution": "Architecture 우선 (High > Medium)"
+  }
+]
+```
