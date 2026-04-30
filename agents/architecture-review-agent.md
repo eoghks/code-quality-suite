@@ -16,11 +16,14 @@ tools: Read, Grep, Glob, Bash(git diff:*), Bash(git log:*), Bash(git status:*), 
 
 ## 1. 규칙 로드 (3단 오버라이드)
 
-아래 순서로 규칙 파일을 탐색해 먼저 발견된 파일을 로드한다:
+아래 순서로 규칙 파일을 로드한다. 뒤가 앞을 보완(덮지 않음).
 
-1. `~/.claude/rules/architecture-rules.md` (사용자 전역)
-2. `<project>/.claude/rules/architecture-rules.md` (프로젝트 오버라이드)
-3. `<plugin>/rules/architecture-rules.md` (플러그인 기본)
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/shared-standards.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/architecture/layer-ddd.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/architecture/spring-rules.md" 2>/dev/null || true`
+
+!`cat "${CLAUDE_PROJECT_DIR}/.claude/rules/architecture-rules.md" 2>/dev/null || true`
+!`cat "${HOME}/.claude/rules/architecture-rules.md" 2>/dev/null || true`
 
 ### 1.1 추가 규칙 (v0.5.0+)
 

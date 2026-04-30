@@ -1,7 +1,7 @@
 {
   "name": "code-quality-suite",
-  "version": "0.6.0",
-  "description": "Java/Spring Boot 코드 품질 통합 Agent Plugin — 6 Agent + 9 Command · PMD/Checkstyle/OWASP Dependency-Check · trufflehog/ggshield Secret Scan · Multi-module 지원 · Prompt Injection 방어 · Baseline 만료 정책 · @suppress 인라인 억제 + 감사 · /init-project 대화형 마법사 · OWASP Top 10 · Flyway/Liquibase 안전성 · JUnit 5 스켈레톤 자동 생성 · pipeline-state.json Agent 협업 · /agent-explain 교육 커맨드 · Large Diff Chunk 분할",
+  "version": "0.6.1",
+  "description": "Java/Spring Boot 코드 품질 통합 Agent Plugin — 6 Agent + 9 Command · PMD/Checkstyle/OWASP Dependency-Check · trufflehog/ggshield Secret Scan · Multi-module 지원 · Prompt Injection 방어 · Baseline 만료 정책 · @suppress 인라인 억제 + 감사 · /init-project 대화형 마법사 · OWASP Top 10 · Flyway/Liquibase 안전성 · JUnit 5 스켈레톤 자동 생성 · pipeline-state.json Agent 협업 · /agent-explain 교육 커맨드 · Large Diff Chunk 분할 · Rule 파일 200줄 이하 세분화",
   "author": {
     "name": "daehwan"
   },

@@ -17,14 +17,15 @@ tools: Read, Grep, Glob, Edit, Write, Bash(git add:*), Bash(git commit:*), Bash(
 
 !`cat "${CLAUDE_PLUGIN_ROOT}/rules/shared-standards.md" 2>/dev/null || true`
 
-!`cat "${CLAUDE_PLUGIN_ROOT}/rules/refactor-rules.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/refactor/basics.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/refactor/metrics-git.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/refactor/exceptions-coupling.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/refactor/immutability-guard.md" 2>/dev/null || true`
 
 !`cat "${CLAUDE_PROJECT_DIR}/.claude/rules/shared-standards.md" 2>/dev/null || true`
-
 !`cat "${CLAUDE_PROJECT_DIR}/.claude/rules/refactor-rules.md" 2>/dev/null || true`
 
 !`cat "${HOME}/.claude/rules/shared-standards.md" 2>/dev/null || true`
-
 !`cat "${HOME}/.claude/rules/refactor-rules.md" 2>/dev/null || true`
 
 **우선순위 충돌 시:** 사용자(`~/.claude/rules/`) > 프로젝트(`<proj>/.claude/rules/`) > Plugin 기본(`<plugin>/rules/`)

@@ -15,6 +15,7 @@
 | **v0.4.0** | ✅ 릴리즈 | Test·DB·Suppression·DX — test-generation-agent, db-migration-agent, @suppress, @Transactional/Security 규칙, YAML config |
 | **v0.5.0** | ✅ 릴리즈 | 외부 툴·멀티 모듈·운영 안전망 — PMD/Checkstyle/OWASP-DC, Secret Scan, Multi-module, `/init-project`, Baseline 만료, `/suppress-audit`, Prompt Injection 방어 |
 | **v0.6.0** | ✅ 릴리즈 | Agent 협업·교육·대용량 처리 — pipeline-state.json, `/agent-explain`, Large Diff Chunk 분할 |
+| **v0.6.1** | ✅ 릴리즈 | Rule 파일 세분화 — 4개 대형 규칙 파일을 파일당 200줄 이하 서브디렉터리로 분리 |
 | **v0.7.0** | 📝 계획 | Round-trip 피드백 루프·리포트·AI 품질·프론트엔드 — Quality BLOCK → Refactor 자동 재호출, JSON/HTML 리포트, 트렌드, Confidence Score, frontend-rules, Rule Conflict Detection |
 | **v0.8.0** | 📝 계획 | 엔터프라이즈 확장 — 팀별 프로파일, Slack/Jira/Datadog 연동, compliance-audit-agent, `/changelog-gen`, 규칙별 WHY 문서 |
 | **v1.0.0** | 📝 계획 | 프로덕션 릴리스 — i18n, Kotlin/Groovy/Scala, IDEA 플러그인, WebFlux/Reactive, 장기 안정화 |
