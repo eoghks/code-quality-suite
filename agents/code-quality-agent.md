@@ -19,19 +19,17 @@ tools: Read, Grep, Glob, Bash(git diff:*), Bash(git log:*), Bash(git status:*), 
 
 !`cat "${CLAUDE_PLUGIN_ROOT}/rules/shared-standards.md" 2>/dev/null || true`
 
-!`cat "${CLAUDE_PLUGIN_ROOT}/rules/quality-rules.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/quality/compliance-testing.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/quality/performance.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/quality/reporting.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/static-analysis-tools.md" 2>/dev/null || true`
+!`cat "${CLAUDE_PLUGIN_ROOT}/rules/prompt-safety.md" 2>/dev/null || true`
 
 !`cat "${CLAUDE_PROJECT_DIR}/.claude/rules/shared-standards.md" 2>/dev/null || true`
-
 !`cat "${CLAUDE_PROJECT_DIR}/.claude/rules/quality-rules.md" 2>/dev/null || true`
 
 !`cat "${HOME}/.claude/rules/shared-standards.md" 2>/dev/null || true`
-
 !`cat "${HOME}/.claude/rules/quality-rules.md" 2>/dev/null || true`
-
-!`cat "${CLAUDE_PLUGIN_ROOT}/rules/static-analysis-tools.md"`
-
-!`cat "${CLAUDE_PLUGIN_ROOT}/rules/prompt-safety.md"`
 
 **우선순위 충돌 시:** 사용자(`~/.claude/rules/`) > 프로젝트(`<proj>/.claude/rules/`) > Plugin 기본(`<plugin>/rules/`)
 

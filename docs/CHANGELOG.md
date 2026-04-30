@@ -4,6 +4,34 @@
 
 ---
 
+## [0.6.1] - 2026-04-30
+
+**Rule 파일 세분화 Release.** 파일당 200줄 이하 원칙 적용 — 대형 규칙 파일 4개를 서브디렉터리로 분리.
+
+### Changed — Rule 파일 구조
+
+- `rules/refactor-rules.md` (426줄) → thin index + `rules/refactor/` 서브디렉터리 4개 파일
+  - `rules/refactor/basics.md` — §1~7: 메서드 크기·null·Map·매직넘버·설계 패턴·DRY·네이밍
+  - `rules/refactor/metrics-git.md` — §8~10: 테스트 병행·브랜치/커밋·CC/Cognitive 메트릭
+  - `rules/refactor/exceptions-coupling.md` — §11~12: 예외 처리·Resource·응집도·결합도
+  - `rules/refactor/immutability-guard.md` — §13~14: Immutability·final·record·Guard Clause
+- `rules/architecture-rules.md` (347줄) → thin index + `rules/architecture/` 서브디렉터리 2개 파일
+  - `rules/architecture/layer-ddd.md` — §0~7: 심각도·레이어·순환의존·DDD·패키지·HEX·BLOCK
+  - `rules/architecture/spring-rules.md` — §9~11: @Transactional·Spring Security·보고서 형식
+- `rules/quality-rules.md` (343줄) → thin index + `rules/quality/` 서브디렉터리 3개 파일
+  - `rules/quality/compliance-testing.md` — §1~3: 보안 smoke·규칙 준수·테스트 커버리지
+  - `rules/quality/performance.md` — §4~4A: 성능 안티패턴·SpotBugs/JaCoCo 파싱
+  - `rules/quality/reporting.md` — §5~6: 보고서 형식·BLOCK 마커·동작 범위
+- `rules/static-analysis-tools.md` (220줄) → 200줄 이하로 트리밍 (verbose 스니펫 → INSTALL.md 링크로 대체)
+
+### Changed — Agent 규칙 로드
+
+- `agents/code-refactoring-agent.md` — `rules/refactor/` 4개 파일 순차 로드로 변경
+- `agents/architecture-review-agent.md` — `rules/architecture/` 2개 파일 순차 로드로 변경
+- `agents/code-quality-agent.md` — `rules/quality/` 3개 파일 순차 로드로 변경
+
+---
+
 ## [0.6.0] - 2026-04-27
 
 **Agent 협업 · 교육 · 대용량 처리 Release.** pipeline-state.json Agent 간 상태 공유, /agent-explain 교육 커맨드, Large Diff Chunk 자동 분할.
